@@ -1,4 +1,5 @@
 import Link from "next/link";
+import Image from "next/image";
 
 const features = [
   { icon: "⛺", title: "Kutyabarát kempingek", desc: "Szűrhető adatbázis a kutyabarát éjszakázási helyekről Európa-szerte." },
@@ -18,22 +19,43 @@ export default function BobilosUtazasPage() {
   return (
     <div className="min-h-screen bg-[#F7F8F5]">
       {/* Hero */}
-      <section className="bg-gradient-to-br from-[#1A3D2B] to-[#3D7A3D] py-20">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="max-w-3xl">
-            <div className="inline-block bg-white/20 text-white text-xs font-bold px-4 py-2 rounded-full mb-6 uppercase tracking-widest">
-              ÚJ! Bobilos kalandok kutyáddal
+      <section className="relative overflow-hidden" style={{ minHeight: "580px" }}>
+        {/* Background image */}
+        <Image
+          src="/travel-hero.png"
+          alt="Bobilos utazás kutyával – lakóautó tóparton hegyekkel"
+          fill
+          priority
+          className="object-cover object-center"
+          sizes="100vw"
+        />
+        {/* Dark overlay so text is readable */}
+        <div
+          className="absolute inset-0"
+          style={{
+            background:
+              "linear-gradient(to right, rgba(10,30,18,0.82) 0%, rgba(10,30,18,0.65) 45%, rgba(10,30,18,0.15) 80%, rgba(10,30,18,0.0) 100%)",
+          }}
+        />
+        {/* Bottom fade */}
+        <div className="absolute inset-x-0 bottom-0 h-28 bg-gradient-to-t from-[#F7F8F5] to-transparent" />
+
+        {/* Content */}
+        <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-24 pb-32">
+          <div className="max-w-2xl">
+            <div className="inline-flex items-center gap-2 bg-white/15 backdrop-blur-sm border border-white/30 text-white text-xs font-bold px-4 py-2 rounded-full mb-6 uppercase tracking-widest">
+              🚐 ÚJ! Bobilos kalandok kutyáddal
             </div>
-            <h1 className="text-4xl sm:text-5xl lg:text-6xl font-bold text-white leading-tight mb-6">
+            <h1 className="text-4xl sm:text-5xl lg:text-6xl font-bold text-white leading-tight mb-6 drop-shadow-lg">
               Szabadság. Kaland.{" "}
-              <span className="text-[#52B788]">Kutyáddal.</span>
+              <span style={{ color: "#52B788" }}>Kutyáddal.</span>
             </h1>
-            <p className="text-xl text-[#A7C4A3] mb-8 leading-relaxed max-w-2xl">
-              Fedezz fel kutyabarát kempingeket, tervezz útvonalakat és csatlakozz a bobilos kutya közösséghez. Mert a legjobb kalandok megosztva a legjobb barátaiddal vannak.
+            <p className="text-lg text-white/85 mb-8 leading-relaxed max-w-xl drop-shadow">
+              Fedezz fel kutyabarát kempingeket, tervezz útvonalakat és csatlakozz a bobilos kutya közösséghez. Mert a legjobb kalandok a legjobb barátaiddal vannak.
             </p>
             <Link
               href="#terkep"
-              className="inline-flex items-center gap-2 bg-white text-[#1A3D2B] hover:bg-[#E8F5E9] font-bold px-8 py-4 rounded-2xl transition-colors text-base"
+              className="inline-flex items-center gap-2 bg-white text-[#1A3D2B] hover:bg-[#E8F5E9] font-bold px-8 py-4 rounded-2xl transition-colors text-base shadow-lg"
             >
               Fedezd fel a lehetőségeket →
             </Link>
