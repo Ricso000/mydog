@@ -52,7 +52,7 @@ export default function Footer() {
           <div className="lg:col-span-1">
             <Link href="/" className="flex items-center gap-2 mb-4">
               <span className="text-2xl">🐾</span>
-              <span className="text-xl font-bold">RescueConnect</span>
+              <span className="text-xl font-bold">MyDog</span>
             </Link>
             <p className="text-sm text-[#A7C4A3] leading-relaxed mb-4">
               Összekötjük a megmentett kutyákat az örökbefogadókkal, a menhelyeket az önkéntesekkel.
@@ -103,7 +103,7 @@ export default function Footer() {
 
         <div className="mt-12 pt-8 border-t border-white/10 flex flex-col sm:flex-row items-center justify-between gap-4">
           <p className="text-sm text-[#A7C4A3]">
-            © 2026 RescueConnect. Minden jog fenntartva.
+            © 2026 MyDog. Minden jog fenntartva.
           </p>
           <p className="text-sm text-[#A7C4A3]">
             Készítve ❤️ a kutyákért

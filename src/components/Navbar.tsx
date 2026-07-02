@@ -27,7 +27,7 @@ export default function Navbar() {
               🐾
             </div>
             <div className="flex flex-col leading-tight">
-              <span className="text-[15px] font-bold text-[#1A3D2B]">RescueConnect</span>
+              <span className="text-[15px] font-bold text-[#1A3D2B]">MyDog</span>
               <span className="text-[10px] text-[#6B7280] hidden sm:block">Együtt a boldogabb kutyákért</span>
             </div>
           </Link>

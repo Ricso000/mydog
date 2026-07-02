@@ -32,7 +32,7 @@ export default function CsatlakozasPage() {
           <p className="text-sm font-semibold text-[#52B788] uppercase tracking-wider mb-3">Csatlakozás</p>
           <h1 className="text-4xl sm:text-5xl font-bold text-white mb-4">Csatlakozz partnerként</h1>
           <p className="text-[#A7C4A3] text-lg max-w-2xl mx-auto">
-            Regisztrálj a RescueConnect platformra és segíts kutyák életét jobbá tenni.
+            Regisztrálj a MyDog platformra és segíts kutyák életét jobbá tenni.
           </p>
         </div>
       </section>
@@ -132,7 +132,7 @@ export default function CsatlakozasPage() {
             <label className="flex items-start gap-3 cursor-pointer">
               <input type="checkbox" className="mt-0.5 accent-[#3D7A3D]" />
               <span className="text-sm text-[#4A5568]">
-                Elfogadom a RescueConnect <a href="#" className="text-[#1A3D2B] underline">Általános Szerződési Feltételeit</a> és <a href="#" className="text-[#1A3D2B] underline">Adatvédelmi Szabályzatát</a>.
+                Elfogadom a MyDog <a href="#" className="text-[#1A3D2B] underline">Általános Szerződési Feltételeit</a> és <a href="#" className="text-[#1A3D2B] underline">Adatvédelmi Szabályzatát</a>.
               </span>
             </label>
           </div>

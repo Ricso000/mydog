@@ -10,8 +10,42 @@ const inter = Inter({
 });
 
 export const metadata: Metadata = {
-  title: "RescueConnect – Összekötjük őket, akik segítenek",
-  description: "Egy helyen minden, ami egy kutya jobb életéhez kell. Nemzetközi kutya mentő és örökbefogadási platform.",
+  title: "MyDog – Együtt egy jobb életért minden kutyának",
+  description:
+    "Nemzetközi platform örökbefogadáshoz, menhelyekhez, fajtamentőkhöz, állatorvosokhoz és kutyás szolgáltatókhoz. Európa szerte. Egy közösség. Egy küldetés.",
+  keywords: [
+    "kutya örökbefogadás",
+    "menhely",
+    "fajtamentő",
+    "állatorvos",
+    "kutyabarát helyek",
+    "kutya mentés",
+    "mydog",
+  ],
+  openGraph: {
+    type: "website",
+    locale: "hu_HU",
+    url: "https://mydog.vercel.app",
+    siteName: "MyDog",
+    title: "MyDog – Együtt egy jobb életért minden kutyának",
+    description:
+      "Örökbefogadás · Menhelyek · Állatorvosok · Kutyabarát helyek. Európa szerte. Egy közösség. Egy küldetés.",
+    images: [
+      {
+        url: "/og-image.png",
+        width: 1200,
+        height: 630,
+        alt: "MyDog – Együtt egy jobb életért minden kutyának",
+      },
+    ],
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "MyDog – Együtt egy jobb életért minden kutyának",
+    description:
+      "Örökbefogadás · Menhelyek · Állatorvosok · Kutyabarát helyek. Európa szerte. Egy közösség. Egy küldetés.",
+    images: ["/og-image.png"],
+  },
 };
 
 export default function RootLayout({

@@ -36,7 +36,7 @@ export default function GyerekekNekPage() {
                 Tanulj, játssz és szeresd a kutyákat!
               </h1>
               <p className="text-lg text-[#4A5568] mb-8 leading-relaxed">
-                A RescueConnect gyerek sarkában meséken, játékokon és kvízeken keresztül tanulhatsz a kutyákról és az állatvédelemről.
+                A MyDog gyerek sarkában meséken, játékokon és kvízeken keresztül tanulhatsz a kutyákról és az állatvédelemről.
               </p>
               <div className="flex flex-col sm:flex-row gap-4">
                 <Link href="#mesek" className="inline-flex items-center justify-center gap-2 bg-[#1B4D2F] hover:bg-[#1A3D2B] text-white font-semibold px-8 py-4 rounded-2xl transition-colors">

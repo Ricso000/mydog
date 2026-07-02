@@ -35,7 +35,7 @@ export default function RolunkPage() {
             Összekötjük őket,<br />akik segítenek.
           </h1>
           <p className="text-xl text-[#A7C4A3] max-w-3xl mx-auto leading-relaxed">
-            A RescueConnect 2024-ben indult, azzal a céllal, hogy egyetlen platformon összehozza a menhelyeket, fajtamentőket, állatorvosokat, önkénteseket és örökbefogadókat – határokon átívelve.
+            A MyDog 2024-ben indult, azzal a céllal, hogy egyetlen platformon összehozza a menhelyeket, fajtamentőket, állatorvosokat, önkénteseket és örökbefogadókat – határokon átívelve.
           </p>
         </div>
       </section>
@@ -57,7 +57,7 @@ export default function RolunkPage() {
             <div className="bg-[#E8F5E9] rounded-3xl p-8 text-center">
               <div className="text-[6rem] mb-4">🐕</div>
               <p className="text-2xl font-bold text-[#1A3D2B]">„Mert minden élet számít."</p>
-              <p className="text-[#4A5568] mt-3">— A RescueConnect csapata</p>
+              <p className="text-[#4A5568] mt-3">— A MyDog csapata</p>
             </div>
           </div>
         </div>

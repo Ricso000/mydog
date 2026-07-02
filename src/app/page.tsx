@@ -315,7 +315,7 @@ export default function HomePage() {
                 Légy te is részese valami csodálatosnak!
               </h2>
               <p className="text-[15px] mb-8 max-w-lg" style={{ color: "#A7C4A3" }}>
-                Csatlakozz a RescueConnect közösségéhez és segíts kutyákat jobb életet találni.
+                Csatlakozz a MyDog közösségéhez és segíts kutyákat jobb életet találni.
               </p>
               <Link
                 href="/csatlakozas"
