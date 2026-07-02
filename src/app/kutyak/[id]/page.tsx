@@ -1,31 +1,38 @@
 import Link from "next/link";
+import Image from "next/image";
+
+const thumbnails = [
+  "https://images.unsplash.com/photo-1587300003388-59208cc962cb?w=200&h=160&fit=crop&auto=format&q=80",
+  "https://images.unsplash.com/photo-1587300003388-59208cc962cb?w=200&h=160&fit=crop&auto=format&q=75&sat=-30",
+  "https://images.unsplash.com/photo-1552053831-71594a27632d?w=200&h=160&fit=crop&auto=format&q=80",
+  "https://images.unsplash.com/photo-1537151608828-ea2b11777ee8?w=200&h=160&fit=crop&auto=format&q=80",
+];
 
 export default function KutyaDetailPage() {
   return (
     <div className="min-h-screen bg-[#F7F8F5]">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        {/* Back button */}
-        <Link
-          href="/kutyak"
-          className="inline-flex items-center gap-2 text-sm font-medium text-[#4A5568] hover:text-[#1A3D2B] mb-8 transition-colors"
-        >
+        <Link href="/kutyak" className="inline-flex items-center gap-2 text-sm font-medium text-[#4A5568] hover:text-[#1A3D2B] mb-8 transition-colors">
           ← Vissza a kereséshez
         </Link>
 
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-10">
           {/* Left – Photo */}
           <div>
-            <div className="bg-amber-100 rounded-3xl h-[450px] flex items-center justify-center mb-4 shadow-sm">
-              <span className="text-[10rem]">🐕</span>
+            <div className="relative rounded-3xl overflow-hidden h-[450px] shadow-sm mb-4">
+              <Image
+                src="https://images.unsplash.com/photo-1587300003388-59208cc962cb?w=800&h=600&fit=crop&auto=format&q=85"
+                alt="Luna kutya fotó"
+                fill
+                priority
+                className="object-cover"
+                sizes="(max-width: 1024px) 100vw, 50vw"
+              />
             </div>
-            {/* Thumbnail row */}
             <div className="grid grid-cols-4 gap-3">
-              {["bg-amber-100", "bg-amber-50", "bg-yellow-100", "bg-orange-50"].map((bg, i) => (
-                <div
-                  key={i}
-                  className={`${bg} rounded-xl h-20 flex items-center justify-center text-3xl cursor-pointer border-2 ${i === 0 ? "border-[#1A3D2B]" : "border-transparent"} hover:border-[#3D7A3D] transition-colors`}
-                >
-                  🐕
+              {thumbnails.map((src, i) => (
+                <div key={i} className={`relative rounded-xl overflow-hidden h-20 cursor-pointer border-2 ${i === 0 ? "border-[#1A3D2B]" : "border-transparent"} hover:border-[#3D7A3D] transition-colors`}>
+                  <Image src={src} alt={`Luna fotó ${i + 1}`} fill className="object-cover" sizes="100px" />
                 </div>
               ))}
             </div>
@@ -53,16 +60,12 @@ export default function KutyaDetailPage() {
               </div>
             </div>
 
-            {/* Badges */}
             <div className="flex flex-wrap gap-2 mb-6">
               {["Közepes méretű", "Aktív", "Barátságos", "Gyerekek mellé is"].map((badge) => (
-                <span key={badge} className="bg-[#E8F5E9] text-[#1A3D2B] text-sm font-medium px-3 py-1.5 rounded-full">
-                  {badge}
-                </span>
+                <span key={badge} className="bg-[#E8F5E9] text-[#1A3D2B] text-sm font-medium px-3 py-1.5 rounded-full">{badge}</span>
               ))}
             </div>
 
-            {/* Shelter */}
             <div className="bg-white rounded-2xl p-4 border border-[#E2E8F0] mb-6 flex items-center gap-3">
               <div className="w-12 h-12 bg-[#E8F5E9] rounded-xl flex items-center justify-center text-xl">🏠</div>
               <div>
@@ -72,15 +75,13 @@ export default function KutyaDetailPage() {
               </div>
             </div>
 
-            {/* About */}
             <div className="mb-6">
               <h2 className="text-lg font-bold text-[#1C1C1C] mb-3">Rólam</h2>
               <p className="text-[#4A5568] leading-relaxed text-sm">
-                Szia, Luna vagyok! 2 éves keverék szuka, teli energiával és szeretettel. Szeretem a hosszú sétákat, a labdát és az emberek társaságát. Gyerekekkel is jól kijövök, és más kutyákkal is baráti vagyok. Egy aktív, szerető otthonban virágoznék igazán. Várom az örökbe fogadómat, aki kalandokat és öleléseket hoz az életembe! 🐾
+                Szia, Luna vagyok! 2 éves keverék szuka, teli energiával és szeretettel. Szeretem a hosszú sétákat, a labdát és az emberek társaságát. Gyerekekkel is jól kijövök, és más kutyákkal is baráti vagyok. Egy aktív, szerető otthonban virágoznék igazán. Várom az örökbe fogadómat! 🐾
               </p>
             </div>
 
-            {/* Info */}
             <div className="bg-[#F7F8F5] rounded-2xl p-5 mb-6">
               <h2 className="text-base font-bold text-[#1C1C1C] mb-4">Információk</h2>
               <div className="grid grid-cols-2 gap-3">
@@ -94,20 +95,14 @@ export default function KutyaDetailPage() {
                 ].map((info) => (
                   <div key={info.label} className="flex items-center gap-2">
                     <span className="text-[#3D7A3D] text-sm">✓</span>
-                    <span className="text-sm text-[#4A5568]">
-                      <span className="font-medium">{info.label}:</span> {info.value}
-                    </span>
+                    <span className="text-sm text-[#4A5568]"><span className="font-medium">{info.label}:</span> {info.value}</span>
                   </div>
                 ))}
               </div>
             </div>
 
-            {/* Buttons */}
             <div className="flex flex-col gap-3">
-              <Link
-                href="/kutyak/1/kapcsolat"
-                className="w-full text-center bg-[#1B4D2F] hover:bg-[#1A3D2B] text-white font-semibold py-4 rounded-2xl transition-colors"
-              >
+              <Link href="/kutyak/1/kapcsolat" className="w-full text-center bg-[#1B4D2F] hover:bg-[#1A3D2B] text-white font-semibold py-4 rounded-2xl transition-colors">
                 Kapcsolatfelvétel a menhellyel
               </Link>
               <button className="w-full border-2 border-[#1A3D2B] text-[#1A3D2B] hover:bg-[#E8F5E9] font-semibold py-3.5 rounded-2xl transition-colors">
