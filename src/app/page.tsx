@@ -78,40 +78,53 @@ export default function HomePage() {
           className="object-cover object-center"
           sizes="100vw"
         />
+
+        {/* MOBILE overlay: subtle dark so text pops on the photo */}
         <div
-          className="absolute inset-0"
-          style={{
-            background:
-              "linear-gradient(to right, rgba(255,255,255,0.97) 0%, rgba(255,255,255,0.88) 30%, rgba(255,255,255,0.55) 55%, rgba(255,255,255,0.0) 75%)",
-          }}
+          className="absolute inset-0 lg:hidden"
+          style={{ background: "linear-gradient(to bottom, rgba(0,0,0,0.08) 0%, rgba(0,0,0,0.22) 60%, rgba(247,248,245,1) 100%)" }}
         />
-        <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-14 pb-52">
+        {/* DESKTOP overlay: white fade from left */}
+        <div
+          className="absolute inset-0 hidden lg:block"
+          style={{ background: "linear-gradient(to right, rgba(255,255,255,0.97) 0%, rgba(255,255,255,0.88) 30%, rgba(255,255,255,0.55) 55%, rgba(255,255,255,0.0) 75%)" }}
+        />
+
+        <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-10 pb-52 lg:pt-14 lg:pb-52">
           <div className="max-w-[560px]">
-            <div className="inline-flex items-center gap-2 bg-white/90 backdrop-blur-sm text-[#1A3D2B] text-[13px] font-semibold px-4 py-2 rounded-full mb-6 shadow-sm border border-white/60">
+            {/* Badge */}
+            <div className="inline-flex items-center gap-2 bg-white/90 backdrop-blur-sm text-[#1A3D2B] text-[13px] font-semibold px-4 py-2 rounded-full mb-5 shadow-sm border border-white/60">
               <span>🐾</span>
               <span>Több ezer kutya vár szerető otthonra</span>
               <span>❤️</span>
             </div>
-            <h1 className="font-bold leading-[1.12] mb-5" style={{ fontSize: "clamp(2.2rem, 4.5vw, 3.5rem)", color: "#111827" }}>
-              Együtt egy jobb életért
-              <br />
+
+            {/* H1 – black on desktop, white on mobile for contrast over photo */}
+            <h1 className="font-bold leading-[1.12] mb-4" style={{ fontSize: "clamp(2.2rem, 4.5vw, 3.5rem)" }}>
+              <span className="block text-[#111827] lg:text-[#111827] [.mobile-hero_&]:text-white">
+                Együtt egy jobb életért
+              </span>
               <span style={{ color: "#1A3D2B" }}>minden kutyának.</span>
             </h1>
-            <p className="text-[16px] leading-relaxed mb-8" style={{ color: "#374151" }}>
-              Nemzetközi platform örökbefogadáshoz, menhelyekhez,<br className="hidden sm:block" />
+
+            {/* Subtitle – slightly muted on mobile */}
+            <p className="text-[15px] leading-relaxed mb-7 text-[#374151] lg:text-[#374151]">
+              Nemzetközi platform örökbefogadáshoz, menhelyekhez,
               fajtamentőkhöz, állatorvosokhoz és kutyás szolgáltatókhoz.
             </p>
+
+            {/* Buttons */}
             <div className="flex flex-col sm:flex-row gap-3">
               <Link
                 href="/kutyak"
-                className="inline-flex items-center justify-center gap-2 text-white font-semibold px-6 py-3.5 rounded-xl transition-colors text-[15px] shadow-md"
+                className="inline-flex items-center justify-center gap-2 text-white font-semibold px-6 py-4 rounded-2xl transition-colors text-[15px] shadow-md w-full sm:w-auto"
                 style={{ backgroundColor: "#1A3D2B" }}
               >
                 🐾 Kutyák böngészése
               </Link>
               <Link
                 href="/szolgaltatasok"
-                className="inline-flex items-center justify-center gap-2 border border-[#D1D5DB] bg-white/80 backdrop-blur-sm text-[#374151] hover:bg-white font-semibold px-6 py-3.5 rounded-xl transition-colors text-[15px] shadow-sm"
+                className="inline-flex items-center justify-center gap-2 border border-[#D1D5DB] bg-white/90 backdrop-blur-sm text-[#374151] hover:bg-white font-semibold px-6 py-4 rounded-2xl transition-colors text-[15px] shadow-sm w-full sm:w-auto"
               >
                 ❤️ Hogyan működik?
               </Link>
@@ -121,27 +134,82 @@ export default function HomePage() {
       </section>
 
       {/* ── SEARCH WIDGET ─────────────────────────────────────────── */}
-      <div className="relative z-20 -mt-36 px-4 sm:px-6 lg:px-8 pb-2">
+      <div className="relative z-20 -mt-40 sm:-mt-36 px-4 sm:px-6 lg:px-8 pb-2">
         <div className="max-w-5xl mx-auto bg-white rounded-2xl shadow-xl border border-[#E5E7EB] overflow-hidden">
-          <div className="flex items-center gap-0 border-b border-[#F3F4F6] overflow-x-auto">
-            {searchTabs.map((tab, i) => (
+
+          {/* Tabs: text on desktop, icons-only on mobile */}
+          <div className="flex items-stretch border-b border-[#F3F4F6] overflow-x-auto">
+            {[
+              { label: "Kutyák keresése", icon: "🐾" },
+              { label: "Menhelyek",       icon: "🏠" },
+              { label: "Fajtamentők",     icon: "🐕" },
+              { label: "Állatorvosok",    icon: "💉" },
+              { label: "Kutyabarát",      icon: "📍" },
+            ].map((tab, i) => (
               <button
-                key={tab}
-                className={`flex items-center gap-1.5 px-5 py-3.5 text-[13px] font-semibold whitespace-nowrap transition-colors ${
+                key={tab.label}
+                className={`flex items-center justify-center gap-1.5 px-3 sm:px-5 py-3.5 text-[13px] font-semibold whitespace-nowrap transition-colors flex-1 sm:flex-none ${
                   i === 0 ? "bg-[#1A3D2B] text-white" : "text-[#6B7280] hover:text-[#1A3D2B] hover:bg-[#F9FAFB]"
                 }`}
               >
-                {tab}
+                <span className="text-base">{tab.icon}</span>
+                <span className="hidden sm:inline">{tab.label}</span>
               </button>
             ))}
           </div>
-          <div className="p-5">
-            <div className="flex flex-wrap lg:flex-nowrap items-end gap-3">
+
+          <div className="p-4 sm:p-5">
+            {/* Mobile: stacked filters */}
+            <div className="flex flex-col sm:hidden gap-3">
+              {[
+                { label: "Ország",    options: ["Összes ország", "Magyarország", "Németország", "Ausztria", "Románia", "Spanyolország"] },
+                { label: "Fajta",     options: ["Összes fajta", "Keverék", "Labrador", "Border Collie", "Golden Retriever"] },
+                { label: "Kor",       options: ["Bármennyi", "Kölyök (0–1 év)", "Fiatal (1–3 év)", "Felnőtt (3–7 év)", "Idős (7+ év)"] },
+                { label: "Méret",     options: ["Bármennyi", "Kis (–10 kg)", "Közepes (10–25 kg)", "Nagy (25+ kg)"] },
+              ].map(({ label, options }) => (
+                <div key={label} className="relative">
+                  <label className="absolute left-3 top-2 text-[11px] font-semibold text-[#9CA3AF] uppercase tracking-wide pointer-events-none">{label}</label>
+                  <select className="w-full appearance-none bg-white border border-[#E5E7EB] rounded-xl px-3 pt-6 pb-2.5 text-[14px] text-[#111827] font-medium pr-8 focus:outline-none focus:ring-2 focus:ring-[#1A3D2B]/20 focus:border-[#1A3D2B]">
+                    {options.map((o) => <option key={o}>{o}</option>)}
+                  </select>
+                  <svg className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[#9CA3AF] pointer-events-none" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                  </svg>
+                </div>
+              ))}
+
+              {/* Szállítható toggle */}
+              <div className="flex items-center justify-between bg-white border border-[#E5E7EB] rounded-xl px-4 py-3.5">
+                <div>
+                  <div className="text-[11px] font-semibold text-[#9CA3AF] uppercase tracking-wide">Szállítható</div>
+                  <div className="text-[14px] text-[#111827] font-medium mt-0.5">Csak szállíthatók</div>
+                </div>
+                <div className="relative w-11 h-6 shrink-0">
+                  <div className="w-11 h-6 bg-[#D1D5DB] rounded-full"></div>
+                  <div className="absolute left-0.5 top-0.5 w-5 h-5 bg-white rounded-full shadow-sm"></div>
+                </div>
+              </div>
+
+              {/* Full-width search button on mobile */}
+              <Link
+                href="/kutyak"
+                className="flex items-center justify-center gap-2 text-white font-semibold py-4 rounded-2xl text-[15px] shadow-sm w-full"
+                style={{ backgroundColor: "#1A3D2B" }}
+              >
+                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                </svg>
+                Keresés
+              </Link>
+            </div>
+
+            {/* Desktop: side-by-side filters */}
+            <div className="hidden sm:flex flex-wrap lg:flex-nowrap items-end gap-3">
               {[
                 { label: "Ország", options: ["Összes ország", "Magyarország", "Németország", "Ausztria", "Románia", "Spanyolország"] },
-                { label: "Fajta", options: ["Összes fajta", "Keverék", "Labrador", "Border Collie", "Golden Retriever"] },
-                { label: "Kor", options: ["Bármennyi", "Kölyök (0–1 év)", "Fiatal (1–3 év)", "Felnőtt (3–7 év)", "Idős (7+ év)"] },
-                { label: "Méret", options: ["Bármennyi", "Kis (–10 kg)", "Közepes (10–25 kg)", "Nagy (25+ kg)"] },
+                { label: "Fajta",  options: ["Összes fajta", "Keverék", "Labrador", "Border Collie", "Golden Retriever"] },
+                { label: "Kor",    options: ["Bármennyi", "Kölyök (0–1 év)", "Fiatal (1–3 év)", "Felnőtt (3–7 év)", "Idős (7+ év)"] },
+                { label: "Méret",  options: ["Bármennyi", "Kis (–10 kg)", "Közepes (10–25 kg)", "Nagy (25+ kg)"] },
               ].map(({ label, options }) => (
                 <div key={label} className="flex-1 min-w-[120px]">
                   <label className="block text-[11px] font-semibold text-[#6B7280] mb-1.5 uppercase tracking-wide">{label}</label>
@@ -172,6 +240,7 @@ export default function HomePage() {
                 Keresés
               </Link>
             </div>
+
             <div className="mt-4 flex items-center justify-center gap-1.5 text-[13px] text-[#6B7280]">
               <span>🐾</span>
               <span>Több mint <strong className="text-[#1A3D2B] font-bold">18 450</strong> kutya <strong className="text-[#1A3D2B] font-bold">32</strong> országban</span>
