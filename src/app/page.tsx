@@ -1,44 +1,31 @@
 import Link from "next/link";
 import Image from "next/image";
+import { createClient } from "@/lib/supabase/server";
 
-const featuredDogs = [
-  {
-    id: 1,
-    name: "Luna",
-    age: "2 éves",
-    gender: "Szuka",
-    breed: "Keverék",
-    country: "🇩🇪 Németország",
-    img: "https://images.unsplash.com/photo-1587300003388-59208cc962cb?w=400&h=300&fit=crop&auto=format&q=80",
-  },
-  {
-    id: 2,
-    name: "Max",
-    age: "4 éves",
-    gender: "Kan",
-    breed: "Labrador keverék",
-    country: "🇭🇺 Magyarország",
-    img: "https://images.unsplash.com/photo-1537151608828-ea2b11777ee8?w=400&h=300&fit=crop&auto=format&q=80",
-  },
-  {
-    id: 3,
-    name: "Bella",
-    age: "1.5 éves",
-    gender: "Szuka",
-    breed: "Border Collie",
-    country: "🇪🇸 Spanyolország",
-    img: "https://images.unsplash.com/photo-1503256207526-0d5523f31059?w=400&h=300&fit=crop&auto=format&q=80",
-  },
-  {
-    id: 4,
-    name: "Rocky",
-    age: "3 éves",
-    gender: "Kan",
-    breed: "Staffi keverék",
-    country: "🇫🇷 Franciaország",
-    img: "https://images.unsplash.com/photo-1583511655826-05700d52f4d9?w=400&h=300&fit=crop&auto=format&q=80",
-  },
+const countryEmoji: Record<string, string> = {
+  DE: "🇩🇪", HU: "🇭🇺", ES: "🇪🇸", FR: "🇫🇷", IT: "🇮🇹",
+  NL: "🇳🇱", PL: "🇵🇱", AT: "🇦🇹", CZ: "🇨🇿", RO: "🇷🇴"
+};
+const countryName: Record<string, string> = {
+  DE: "Németország", HU: "Magyarország", ES: "Spanyolország",
+  FR: "Franciaország", IT: "Olaszország", NL: "Hollandia",
+  PL: "Lengyelország", AT: "Ausztria", CZ: "Csehország", RO: "Románia"
+};
+const genderLabel: Record<string, string> = { male: "Kan", female: "Szuka" };
+
+const staticFeaturedDogs = [
+  { id: "d1000001-0000-0000-0000-000000000001", name: "Luna",    age_years: 2, age_months: 0, gender: "female", breed: "Keverék",          country: "DE", primary_image_url: "https://images.unsplash.com/photo-1587300003388-59208cc962cb?w=400&h=300&fit=crop&auto=format&q=80" },
+  { id: "d1000001-0000-0000-0000-000000000002", name: "Max",     age_years: 4, age_months: 0, gender: "male",   breed: "Labrador keverék", country: "HU", primary_image_url: "https://images.unsplash.com/photo-1537151608828-ea2b11777ee8?w=400&h=300&fit=crop&auto=format&q=80" },
+  { id: "d1000001-0000-0000-0000-000000000003", name: "Bella",   age_years: 1, age_months: 6, gender: "female", breed: "Border Collie",    country: "ES", primary_image_url: "https://images.unsplash.com/photo-1503256207526-0d5523f31059?w=400&h=300&fit=crop&auto=format&q=80" },
+  { id: "d1000001-0000-0000-0000-000000000004", name: "Rocky",   age_years: 3, age_months: 0, gender: "male",   breed: "Staffi keverék",   country: "DE", primary_image_url: "https://images.unsplash.com/photo-1583511655826-05700d52f4d9?w=400&h=300&fit=crop&auto=format&q=80" },
 ];
+
+function formatAge(age_years: number | null, age_months: number | null): string {
+  if (age_years === null && age_months === null) return "Ismeretlen kor";
+  if ((age_years ?? 0) === 0 && (age_months ?? 0) > 0) return `${age_months} hónapos`;
+  if ((age_months ?? 0) === 6) return `${age_years}.5 éves`;
+  return `${age_years} éves`;
+}
 
 const howItWorks = [
   { icon: "🔍", title: "Keresd meg", desc: "Böngészd a rendelkezésre álló kutyákat szűrők segítségével, ország, fajta és kor szerint." },
@@ -64,7 +51,22 @@ const trustItems = [
 
 const searchTabs = ["🐾 Kutyák keresése", "🏠 Menhelyek", "🐕 Fajtamentők", "💉 Állatorvosok", "📍 Kutyabarát helyek"];
 
-export default function HomePage() {
+export default async function HomePage() {
+  let featuredDogs = staticFeaturedDogs as typeof staticFeaturedDogs;
+  try {
+    const supabase = await createClient();
+    const { data } = await supabase
+      .from("dogs")
+      .select("id, name, breed, age_years, age_months, gender, country, primary_image_url")
+      .eq("status", "available")
+      .order("created_at", { ascending: false })
+      .limit(4);
+    if (data && data.length > 0) {
+      featuredDogs = data as typeof staticFeaturedDogs;
+    }
+  } catch {
+    // use static fallback
+  }
   return (
     <div className="flex flex-col">
 
@@ -274,26 +276,33 @@ export default function HomePage() {
             <Link href="/kutyak" className="text-[13px] font-semibold text-[#1A3D2B] hover:underline">Összes megtekintése →</Link>
           </div>
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
-            {featuredDogs.map((dog) => (
-              <div key={dog.id} className="bg-white rounded-2xl overflow-hidden shadow-sm hover:shadow-md transition-shadow border border-[#E5E7EB]">
-                <div className="relative h-48 w-full">
-                  <Image src={dog.img} alt={dog.name} fill className="object-cover" sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 25vw" />
-                  <button className="absolute top-3 right-3 p-1.5 bg-white/80 backdrop-blur-sm rounded-full text-[#9CA3AF] hover:text-red-500 transition-colors shadow-sm">
-                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
-                    </svg>
-                  </button>
+            {featuredDogs.map((dog) => {
+              const emoji = dog.country ? (countryEmoji[dog.country] ?? "") : "";
+              const cName = dog.country ? (countryName[dog.country] ?? dog.country) : "";
+              const ageStr = formatAge(dog.age_years ?? null, dog.age_months ?? null);
+              const gStr = dog.gender ? (genderLabel[dog.gender] ?? dog.gender) : "";
+              const imgSrc = dog.primary_image_url ?? "https://images.unsplash.com/photo-1587300003388-59208cc962cb?w=400&h=300&fit=crop&auto=format&q=80";
+              return (
+                <div key={dog.id} className="bg-white rounded-2xl overflow-hidden shadow-sm hover:shadow-md transition-shadow border border-[#E5E7EB]">
+                  <div className="relative h-48 w-full">
+                    <Image src={imgSrc} alt={dog.name} fill className="object-cover" sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 25vw" />
+                    <button className="absolute top-3 right-3 p-1.5 bg-white/80 backdrop-blur-sm rounded-full text-[#9CA3AF] hover:text-red-500 transition-colors shadow-sm">
+                      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
+                      </svg>
+                    </button>
+                  </div>
+                  <div className="p-4">
+                    <h3 className="text-[15px] font-bold text-[#111827] mb-0.5">{dog.name}</h3>
+                    <p className="text-[13px] text-[#6B7280] mb-0.5">{ageStr} · {gStr} · {dog.breed ?? "Keverék"}</p>
+                    <p className="text-[13px] text-[#6B7280] mb-4">{emoji} {cName}</p>
+                    <Link href={`/kutyak/${dog.id}`} className="block w-full text-center bg-[#F0FDF4] hover:bg-[#1A3D2B] hover:text-white text-[#1A3D2B] font-semibold py-2.5 rounded-xl transition-colors text-[13px]">
+                      Megnézem
+                    </Link>
+                  </div>
                 </div>
-                <div className="p-4">
-                  <h3 className="text-[15px] font-bold text-[#111827] mb-0.5">{dog.name}</h3>
-                  <p className="text-[13px] text-[#6B7280] mb-0.5">{dog.age} · {dog.gender} · {dog.breed}</p>
-                  <p className="text-[13px] text-[#6B7280] mb-4">{dog.country}</p>
-                  <Link href={`/kutyak/${dog.id}`} className="block w-full text-center bg-[#F0FDF4] hover:bg-[#1A3D2B] hover:text-white text-[#1A3D2B] font-semibold py-2.5 rounded-xl transition-colors text-[13px]">
-                    Megnézem
-                  </Link>
-                </div>
-              </div>
-            ))}
+              );
+            })}
           </div>
         </div>
       </section>

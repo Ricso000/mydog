@@ -1,22 +1,67 @@
 import Link from "next/link";
 import Image from "next/image";
+import { createClient } from "@/lib/supabase/server";
+import type { Dog } from "@/types/database";
 
-const allDogs = [
-  { id: 1,  name: "Luna",   age: "2 éves",   gender: "Szuka", breed: "Keverék",          country: "🇩🇪", countryName: "Németország",   size: "Közepes", img: "https://images.unsplash.com/photo-1587300003388-59208cc962cb?w=400&h=300&fit=crop&auto=format&q=80" },
-  { id: 2,  name: "Max",    age: "4 éves",   gender: "Kan",   breed: "Labrador keverék", country: "🇭🇺", countryName: "Magyarország",  size: "Nagy",    img: "https://images.unsplash.com/photo-1537151608828-ea2b11777ee8?w=400&h=300&fit=crop&auto=format&q=80" },
-  { id: 3,  name: "Bella",  age: "1.5 éves", gender: "Szuka", breed: "Border Collie",    country: "🇪🇸", countryName: "Spanyolország", size: "Közepes", img: "https://images.unsplash.com/photo-1503256207526-0d5523f31059?w=400&h=300&fit=crop&auto=format&q=80" },
-  { id: 4,  name: "Rocky",  age: "3 éves",   gender: "Kan",   breed: "Staffi keverék",   country: "🇫🇷", countryName: "Franciaország", size: "Közepes", img: "https://images.unsplash.com/photo-1583511655826-05700d52f4d9?w=400&h=300&fit=crop&auto=format&q=80" },
-  { id: 5,  name: "Molly",  age: "5 éves",   gender: "Szuka", breed: "Beagle",            country: "🇮🇹", countryName: "Olaszország",   size: "Kis",     img: "https://images.unsplash.com/photo-1544568100-847a948585b9?w=400&h=300&fit=crop&auto=format&q=80" },
-  { id: 6,  name: "Charlie",age: "2 éves",   gender: "Kan",   breed: "Golden Retriever", country: "🇳🇱", countryName: "Hollandia",     size: "Nagy",    img: "https://images.unsplash.com/photo-1552053831-71594a27632d?w=400&h=300&fit=crop&auto=format&q=80" },
-  { id: 7,  name: "Daisy",  age: "1 éves",   gender: "Szuka", breed: "Keverék",          country: "🇵🇱", countryName: "Lengyelország", size: "Kis",     img: "https://images.unsplash.com/photo-1548199973-03cce0bbc87b?w=400&h=300&fit=crop&auto=format&q=80" },
-  { id: 8,  name: "Jack",   age: "6 éves",   gender: "Kan",   breed: "Német juhász",     country: "🇦🇹", countryName: "Ausztria",      size: "Nagy",    img: "https://images.unsplash.com/photo-1589941013453-ec89f33b5e95?w=400&h=300&fit=crop&auto=format&q=80" },
-  { id: 9,  name: "Nina",   age: "3 éves",   gender: "Szuka", breed: "Husky keverék",    country: "🇩🇪", countryName: "Németország",   size: "Közepes", img: "https://images.unsplash.com/photo-1605568427561-40dd23c2acea?w=400&h=300&fit=crop&auto=format&q=80" },
-  { id: 10, name: "Bruno",  age: "7 éves",   gender: "Kan",   breed: "Rottweiler keverék",country:"🇭🇺", countryName: "Magyarország",  size: "Nagy",    img: "https://images.unsplash.com/photo-1567752881298-894bb81f9379?w=400&h=300&fit=crop&auto=format&q=80" },
-  { id: 11, name: "Coco",   age: "2 éves",   gender: "Szuka", breed: "Uszkár keverék",   country: "🇫🇷", countryName: "Franciaország", size: "Kis",     img: "https://images.unsplash.com/photo-1591946614720-90a587da4a36?w=400&h=300&fit=crop&auto=format&q=80" },
-  { id: 12, name: "Rex",    age: "4 éves",   gender: "Kan",   breed: "Malinois keverék", country: "🇨🇿", countryName: "Csehország",    size: "Nagy",    img: "https://images.unsplash.com/photo-1561037404-61cd46aa615b?w=400&h=300&fit=crop&auto=format&q=80" },
+const countryEmoji: Record<string, string> = {
+  DE: "🇩🇪", HU: "🇭🇺", ES: "🇪🇸", FR: "🇫🇷", IT: "🇮🇹",
+  NL: "🇳🇱", PL: "🇵🇱", AT: "🇦🇹", CZ: "🇨🇿", RO: "🇷🇴"
+};
+
+const countryName: Record<string, string> = {
+  DE: "Németország", HU: "Magyarország", ES: "Spanyolország",
+  FR: "Franciaország", IT: "Olaszország", NL: "Hollandia",
+  PL: "Lengyelország", AT: "Ausztria", CZ: "Csehország", RO: "Románia"
+};
+
+const genderLabel: Record<string, string> = { male: "Kan", female: "Szuka" };
+const sizeLabel: Record<string, string> = {
+  small: "Kis", medium: "Közepes", large: "Nagy", xlarge: "Óriás"
+};
+
+const staticFallback = [
+  { id: "d1000001-0000-0000-0000-000000000001", name: "Luna",    breed: "Keverék",           age_years: 2, age_months: 0, gender: "female" as const, size: "medium" as const, country: "DE", city: "Berlin",    primary_image_url: "https://images.unsplash.com/photo-1587300003388-59208cc962cb?w=400&h=300&fit=crop&auto=format&q=80", partner: { name: "Happy Paws Rescue", country: "DE", city: "Berlin",   verified: true } },
+  { id: "d1000001-0000-0000-0000-000000000002", name: "Max",     breed: "Labrador keverék",  age_years: 4, age_months: 0, gender: "male"   as const, size: "large"  as const, country: "HU", city: "Budapest",  primary_image_url: "https://images.unsplash.com/photo-1537151608828-ea2b11777ee8?w=400&h=300&fit=crop&auto=format&q=80", partner: { name: "Magyar Állatvédők",  country: "HU", city: "Budapest", verified: true } },
+  { id: "d1000001-0000-0000-0000-000000000003", name: "Bella",   breed: "Border Collie",     age_years: 1, age_months: 6, gender: "female" as const, size: "medium" as const, country: "ES", city: "Madrid",    primary_image_url: "https://images.unsplash.com/photo-1503256207526-0d5523f31059?w=400&h=300&fit=crop&auto=format&q=80", partner: { name: "Paws of Spain",     country: "ES", city: "Madrid",   verified: true } },
+  { id: "d1000001-0000-0000-0000-000000000004", name: "Rocky",   breed: "Staffi keverék",    age_years: 3, age_months: 0, gender: "male"   as const, size: "medium" as const, country: "DE", city: "Berlin",    primary_image_url: "https://images.unsplash.com/photo-1583511655826-05700d52f4d9?w=400&h=300&fit=crop&auto=format&q=80", partner: { name: "Happy Paws Rescue", country: "DE", city: "Berlin",   verified: true } },
+  { id: "d1000001-0000-0000-0000-000000000005", name: "Molly",   breed: "Beagle",            age_years: 5, age_months: 0, gender: "female" as const, size: "small"  as const, country: "HU", city: "Budapest",  primary_image_url: "https://images.unsplash.com/photo-1544568100-847a948585b9?w=400&h=300&fit=crop&auto=format&q=80", partner: { name: "Magyar Állatvédők",  country: "HU", city: "Budapest", verified: true } },
+  { id: "d1000001-0000-0000-0000-000000000006", name: "Charlie", breed: "Golden Retriever",  age_years: 2, age_months: 0, gender: "male"   as const, size: "large"  as const, country: "ES", city: "Madrid",    primary_image_url: "https://images.unsplash.com/photo-1552053831-71594a27632d?w=400&h=300&fit=crop&auto=format&q=80", partner: { name: "Paws of Spain",     country: "ES", city: "Madrid",   verified: true } },
+  { id: "d1000001-0000-0000-0000-000000000007", name: "Daisy",   breed: "Keverék",           age_years: 1, age_months: 0, gender: "female" as const, size: "small"  as const, country: "DE", city: "Berlin",    primary_image_url: "https://images.unsplash.com/photo-1548199973-03cce0bbc87b?w=400&h=300&fit=crop&auto=format&q=80", partner: { name: "Happy Paws Rescue", country: "DE", city: "Berlin",   verified: true } },
+  { id: "d1000001-0000-0000-0000-000000000008", name: "Jack",    breed: "Német juhász",      age_years: 6, age_months: 0, gender: "male"   as const, size: "large"  as const, country: "HU", city: "Budapest",  primary_image_url: "https://images.unsplash.com/photo-1589941013453-ec89f33b5e95?w=400&h=300&fit=crop&auto=format&q=80", partner: { name: "Magyar Állatvédők",  country: "HU", city: "Budapest", verified: true } },
+  { id: "d1000001-0000-0000-0000-000000000009", name: "Nina",    breed: "Husky keverék",     age_years: 3, age_months: 0, gender: "female" as const, size: "medium" as const, country: "ES", city: "Madrid",    primary_image_url: "https://images.unsplash.com/photo-1605568427561-40dd23c2acea?w=400&h=300&fit=crop&auto=format&q=80", partner: { name: "Paws of Spain",     country: "ES", city: "Madrid",   verified: true } },
+  { id: "d1000001-0000-0000-0000-000000000010", name: "Bruno",   breed: "Rottweiler keverék",age_years: 7, age_months: 0, gender: "male"   as const, size: "large"  as const, country: "DE", city: "Berlin",    primary_image_url: "https://images.unsplash.com/photo-1567752881298-894bb81f9379?w=400&h=300&fit=crop&auto=format&q=80", partner: { name: "Happy Paws Rescue", country: "DE", city: "Berlin",   verified: true } },
+  { id: "d1000001-0000-0000-0000-000000000011", name: "Coco",    breed: "Uszkár keverék",    age_years: 2, age_months: 0, gender: "female" as const, size: "small"  as const, country: "HU", city: "Budapest",  primary_image_url: "https://images.unsplash.com/photo-1591946614720-90a587da4a36?w=400&h=300&fit=crop&auto=format&q=80", partner: { name: "Magyar Állatvédők",  country: "HU", city: "Budapest", verified: true } },
+  { id: "d1000001-0000-0000-0000-000000000012", name: "Rex",     breed: "Malinois keverék",  age_years: 4, age_months: 0, gender: "male"   as const, size: "large"  as const, country: "ES", city: "Madrid",    primary_image_url: "https://images.unsplash.com/photo-1561037404-61cd46aa615b?w=400&h=300&fit=crop&auto=format&q=80", partner: { name: "Paws of Spain",     country: "ES", city: "Madrid",   verified: true } },
 ];
 
-export default function KutyakPage() {
+function formatAge(age_years: number | null, age_months: number | null): string {
+  if (age_years === null && age_months === null) return "Ismeretlen kor";
+  if ((age_years ?? 0) === 0 && (age_months ?? 0) > 0) return `${age_months} hónapos`;
+  if ((age_months ?? 0) === 6) return `${age_years}.5 éves`;
+  return `${age_years} éves`;
+}
+
+type DogWithPartner = Dog & {
+  partner?: { name: string; country: string | null; city: string | null; verified: boolean } | null
+};
+
+export default async function KutyakPage() {
+  let displayDogs: DogWithPartner[] = [];
+
+  try {
+    const supabase = await createClient();
+    const { data: dogs } = await supabase
+      .from("dogs")
+      .select("*, partner:partners(name, country, city, verified)")
+      .eq("status", "available")
+      .order("created_at", { ascending: false })
+      .limit(12);
+
+    displayDogs = (dogs && dogs.length > 0) ? (dogs as DogWithPartner[]) : (staticFallback as unknown as DogWithPartner[]);
+  } catch {
+    displayDogs = staticFallback as unknown as DogWithPartner[];
+  }
+
   return (
     <div className="min-h-screen bg-[#F7F8F5]">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
@@ -101,7 +146,7 @@ export default function KutyakPage() {
             <div className="flex flex-col sm:flex-row sm:items-center justify-between mb-6 gap-4">
               <div>
                 <h1 className="text-2xl font-bold text-[#1C1C1C]">Kutyák keresése</h1>
-                <p className="text-sm text-[#4A5568] mt-1">Találatok: <strong>1 287 kutya</strong></p>
+                <p className="text-sm text-[#4A5568] mt-1">Találatok: <strong>{displayDogs.length} kutya</strong></p>
               </div>
               <select className="border border-[#E2E8F0] rounded-xl px-4 py-2.5 text-sm text-[#4A5568] bg-white focus:outline-none focus:ring-2 focus:ring-[#3D7A3D]">
                 <option>Legfrissebb</option>
@@ -111,33 +156,42 @@ export default function KutyakPage() {
             </div>
 
             <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-5">
-              {allDogs.map((dog) => (
-                <div key={dog.id} className="bg-white rounded-2xl overflow-hidden shadow-sm hover:shadow-md transition-shadow border border-[#E2E8F0]">
-                  <div className="relative h-48 w-full">
-                    <Image
-                      src={dog.img}
-                      alt={`${dog.name} – ${dog.breed}`}
-                      fill
-                      className="object-cover"
-                      sizes="(max-width: 640px) 100vw, (max-width: 1280px) 50vw, 33vw"
-                    />
-                    <button className="absolute top-3 right-3 p-1.5 bg-white/80 backdrop-blur-sm rounded-full text-[#9CA3AF] hover:text-red-500 transition-colors shadow-sm" aria-label="Kedvencekhez">
-                      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
-                      </svg>
-                    </button>
+              {displayDogs.map((dog) => {
+                const emoji = dog.country ? (countryEmoji[dog.country] ?? "") : "";
+                const cName = dog.country ? (countryName[dog.country] ?? dog.country) : "";
+                const ageStr = formatAge(dog.age_years ?? null, dog.age_months ?? null);
+                const gStr = dog.gender ? (genderLabel[dog.gender] ?? dog.gender) : "";
+                const sStr = dog.size ? (sizeLabel[dog.size] ?? dog.size) : "";
+                const imgSrc = dog.primary_image_url ?? "https://images.unsplash.com/photo-1587300003388-59208cc962cb?w=400&h=300&fit=crop&auto=format&q=80";
+
+                return (
+                  <div key={dog.id} className="bg-white rounded-2xl overflow-hidden shadow-sm hover:shadow-md transition-shadow border border-[#E2E8F0]">
+                    <div className="relative h-48 w-full">
+                      <Image
+                        src={imgSrc}
+                        alt={`${dog.name} – ${dog.breed ?? "kutya"}`}
+                        fill
+                        className="object-cover"
+                        sizes="(max-width: 640px) 100vw, (max-width: 1280px) 50vw, 33vw"
+                      />
+                      <button className="absolute top-3 right-3 p-1.5 bg-white/80 backdrop-blur-sm rounded-full text-[#9CA3AF] hover:text-red-500 transition-colors shadow-sm" aria-label="Kedvencekhez">
+                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
+                        </svg>
+                      </button>
+                    </div>
+                    <div className="p-4">
+                      <h3 className="text-base font-bold text-[#1C1C1C] mb-0.5">{dog.name}</h3>
+                      <p className="text-xs text-[#4A5568] mb-0.5">{ageStr} · {gStr} · {sStr}</p>
+                      <p className="text-xs text-[#4A5568] mb-0.5">{dog.breed ?? "Keverék"}</p>
+                      <p className="text-xs text-[#4A5568] mb-3">{emoji} {cName}</p>
+                      <Link href={`/kutyak/${dog.id}`} className="block w-full text-center bg-[#E8F5E9] hover:bg-[#1B4D2F] hover:text-white text-[#1A3D2B] font-semibold py-2 rounded-xl transition-colors text-sm">
+                        Megnézem
+                      </Link>
+                    </div>
                   </div>
-                  <div className="p-4">
-                    <h3 className="text-base font-bold text-[#1C1C1C] mb-0.5">{dog.name}</h3>
-                    <p className="text-xs text-[#4A5568] mb-0.5">{dog.age} · {dog.gender} · {dog.size}</p>
-                    <p className="text-xs text-[#4A5568] mb-0.5">{dog.breed}</p>
-                    <p className="text-xs text-[#4A5568] mb-3">{dog.country} {dog.countryName}</p>
-                    <Link href={`/kutyak/${dog.id}`} className="block w-full text-center bg-[#E8F5E9] hover:bg-[#1B4D2F] hover:text-white text-[#1A3D2B] font-semibold py-2 rounded-xl transition-colors text-sm">
-                      Megnézem
-                    </Link>
-                  </div>
-                </div>
-              ))}
+                );
+              })}
             </div>
 
             {/* Pagination */}
