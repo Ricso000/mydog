@@ -69,62 +69,59 @@ export default function HomePage() {
     <div className="flex flex-col">
 
       {/* ── HERO ─────────────────────────────────────────────────── */}
-      <section className="relative overflow-hidden" style={{ minHeight: "580px" }}>
+      <section className="relative overflow-hidden" style={{ minHeight: "520px" }}>
+        {/* Mobile: anchor to top-right so dog head is visible */}
         <Image
           src="/hero-dog.png"
           alt="Boldog golden retriever természetes környezetben"
           fill
           priority
-          className="object-cover object-center"
+          className="object-cover object-[70%_15%] lg:object-center"
           sizes="100vw"
         />
 
-        {/* MOBILE overlay: subtle dark so text pops on the photo */}
+        {/* MOBILE overlay */}
         <div
           className="absolute inset-0 lg:hidden"
-          style={{ background: "linear-gradient(to bottom, rgba(0,0,0,0.08) 0%, rgba(0,0,0,0.22) 60%, rgba(247,248,245,1) 100%)" }}
+          style={{ background: "linear-gradient(to bottom, rgba(255,255,255,0.45) 0%, rgba(255,255,255,0.6) 55%, rgba(247,248,245,1) 100%)" }}
         />
-        {/* DESKTOP overlay: white fade from left */}
+        {/* DESKTOP overlay */}
         <div
           className="absolute inset-0 hidden lg:block"
           style={{ background: "linear-gradient(to right, rgba(255,255,255,0.97) 0%, rgba(255,255,255,0.88) 30%, rgba(255,255,255,0.55) 55%, rgba(255,255,255,0.0) 75%)" }}
         />
 
-        <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-10 pb-52 lg:pt-14 lg:pb-52">
+        <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-6 pb-44 lg:pt-14 lg:pb-52">
           <div className="max-w-[560px]">
             {/* Badge */}
-            <div className="inline-flex items-center gap-2 bg-white/90 backdrop-blur-sm text-[#1A3D2B] text-[13px] font-semibold px-4 py-2 rounded-full mb-5 shadow-sm border border-white/60">
+            <div className="inline-flex items-center gap-1.5 bg-white/90 backdrop-blur-sm text-[#1A3D2B] text-[12px] font-semibold px-3 py-1.5 rounded-full mb-4 shadow-sm border border-white/60">
               <span>🐾</span>
               <span>Több ezer kutya vár szerető otthonra</span>
               <span>❤️</span>
             </div>
 
-            {/* H1 – black on desktop, white on mobile for contrast over photo */}
-            <h1 className="font-bold leading-[1.12] mb-4" style={{ fontSize: "clamp(2.2rem, 4.5vw, 3.5rem)" }}>
-              <span className="block text-[#111827] lg:text-[#111827] [.mobile-hero_&]:text-white">
-                Együtt egy jobb életért
-              </span>
+            <h1 className="font-bold leading-[1.15] mb-3 text-[#111827]" style={{ fontSize: "clamp(1.7rem, 6vw, 3.5rem)" }}>
+              Együtt egy jobb életért
+              <br />
               <span style={{ color: "#1A3D2B" }}>minden kutyának.</span>
             </h1>
 
-            {/* Subtitle – slightly muted on mobile */}
-            <p className="text-[15px] leading-relaxed mb-7 text-[#374151] lg:text-[#374151]">
+            <p className="text-[13px] lg:text-[16px] leading-relaxed mb-5 text-[#374151]">
               Nemzetközi platform örökbefogadáshoz, menhelyekhez,
               fajtamentőkhöz, állatorvosokhoz és kutyás szolgáltatókhoz.
             </p>
 
-            {/* Buttons */}
-            <div className="flex flex-col sm:flex-row gap-3">
+            <div className="flex flex-col sm:flex-row gap-2.5">
               <Link
                 href="/kutyak"
-                className="inline-flex items-center justify-center gap-2 text-white font-semibold px-6 py-4 rounded-2xl transition-colors text-[15px] shadow-md w-full sm:w-auto"
+                className="inline-flex items-center justify-center gap-2 text-white font-semibold px-5 py-3.5 rounded-2xl transition-colors text-[14px] shadow-md w-full sm:w-auto"
                 style={{ backgroundColor: "#1A3D2B" }}
               >
                 🐾 Kutyák böngészése
               </Link>
               <Link
                 href="/szolgaltatasok"
-                className="inline-flex items-center justify-center gap-2 border border-[#D1D5DB] bg-white/90 backdrop-blur-sm text-[#374151] hover:bg-white font-semibold px-6 py-4 rounded-2xl transition-colors text-[15px] shadow-sm w-full sm:w-auto"
+                className="inline-flex items-center justify-center gap-2 border border-[#D1D5DB] bg-white/85 backdrop-blur-sm text-[#374151] hover:bg-white font-semibold px-5 py-3.5 rounded-2xl transition-colors text-[14px] shadow-sm w-full sm:w-auto"
               >
                 ❤️ Hogyan működik?
               </Link>
