@@ -28,6 +28,9 @@ export async function proxy(request: NextRequest) {
   const isPartnerPage = path.startsWith('/partner')
   const isAuthPage = path === '/partner/login' || path === '/partner/register'
 
+  const isAdminPage = path.startsWith('/admin')
+  const isAdminLogin = path === '/admin/login'
+
   if (isPartnerPage && !isAuthPage && !user) {
     const redirectUrl = new URL('/partner/login', request.url)
     redirectUrl.searchParams.set('redirect', path)
@@ -38,9 +41,13 @@ export async function proxy(request: NextRequest) {
     return NextResponse.redirect(new URL('/partner/dashboard', request.url))
   }
 
+  if (isAdminPage && !isAdminLogin && !user) {
+    return NextResponse.redirect(new URL('/admin/login', request.url))
+  }
+
   return supabaseResponse
 }
 
 export const config = {
-  matcher: ['/partner/:path*'],
+  matcher: ['/partner/:path*', '/admin/:path*'],
 }
