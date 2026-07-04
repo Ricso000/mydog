@@ -1,38 +1,30 @@
 import Link from "next/link";
 import Image from "next/image";
+import { Suspense } from "react";
 import { createClient } from "@/lib/supabase/server";
-import type { Dog } from "@/types/database";
+import { KutyakFilters } from "@/components/KutyakFilters";
+
+export const metadata = {
+  title: "Kutyák keresése – MyDog",
+  description:
+    "Találd meg az ideális kutyát! Böngészd az örökbefogadható kutyákat ország, fajta és kor szerint.",
+};
 
 const countryEmoji: Record<string, string> = {
   DE: "🇩🇪", HU: "🇭🇺", ES: "🇪🇸", FR: "🇫🇷", IT: "🇮🇹",
-  NL: "🇳🇱", PL: "🇵🇱", AT: "🇦🇹", CZ: "🇨🇿", RO: "🇷🇴"
+  NL: "🇳🇱", PL: "🇵🇱", AT: "🇦🇹", CZ: "🇨🇿", RO: "🇷🇴",
 };
 
 const countryName: Record<string, string> = {
   DE: "Németország", HU: "Magyarország", ES: "Spanyolország",
   FR: "Franciaország", IT: "Olaszország", NL: "Hollandia",
-  PL: "Lengyelország", AT: "Ausztria", CZ: "Csehország", RO: "Románia"
+  PL: "Lengyelország", AT: "Ausztria", CZ: "Csehország", RO: "Románia",
 };
 
 const genderLabel: Record<string, string> = { male: "Kan", female: "Szuka" };
 const sizeLabel: Record<string, string> = {
-  small: "Kis", medium: "Közepes", large: "Nagy", xlarge: "Óriás"
+  small: "Kis", medium: "Közepes", large: "Nagy", xlarge: "Óriás",
 };
-
-const staticFallback = [
-  { id: "d1000001-0000-0000-0000-000000000001", name: "Luna",    breed: "Keverék",           age_years: 2, age_months: 0, gender: "female" as const, size: "medium" as const, country: "DE", city: "Berlin",    primary_image_url: "https://images.unsplash.com/photo-1587300003388-59208cc962cb?w=400&h=300&fit=crop&auto=format&q=80", partner: { name: "Happy Paws Rescue", country: "DE", city: "Berlin",   verified: true } },
-  { id: "d1000001-0000-0000-0000-000000000002", name: "Max",     breed: "Labrador keverék",  age_years: 4, age_months: 0, gender: "male"   as const, size: "large"  as const, country: "HU", city: "Budapest",  primary_image_url: "https://images.unsplash.com/photo-1537151608828-ea2b11777ee8?w=400&h=300&fit=crop&auto=format&q=80", partner: { name: "Magyar Állatvédők",  country: "HU", city: "Budapest", verified: true } },
-  { id: "d1000001-0000-0000-0000-000000000003", name: "Bella",   breed: "Border Collie",     age_years: 1, age_months: 6, gender: "female" as const, size: "medium" as const, country: "ES", city: "Madrid",    primary_image_url: "https://images.unsplash.com/photo-1503256207526-0d5523f31059?w=400&h=300&fit=crop&auto=format&q=80", partner: { name: "Paws of Spain",     country: "ES", city: "Madrid",   verified: true } },
-  { id: "d1000001-0000-0000-0000-000000000004", name: "Rocky",   breed: "Staffi keverék",    age_years: 3, age_months: 0, gender: "male"   as const, size: "medium" as const, country: "DE", city: "Berlin",    primary_image_url: "https://images.unsplash.com/photo-1583511655826-05700d52f4d9?w=400&h=300&fit=crop&auto=format&q=80", partner: { name: "Happy Paws Rescue", country: "DE", city: "Berlin",   verified: true } },
-  { id: "d1000001-0000-0000-0000-000000000005", name: "Molly",   breed: "Beagle",            age_years: 5, age_months: 0, gender: "female" as const, size: "small"  as const, country: "HU", city: "Budapest",  primary_image_url: "https://images.unsplash.com/photo-1544568100-847a948585b9?w=400&h=300&fit=crop&auto=format&q=80", partner: { name: "Magyar Állatvédők",  country: "HU", city: "Budapest", verified: true } },
-  { id: "d1000001-0000-0000-0000-000000000006", name: "Charlie", breed: "Golden Retriever",  age_years: 2, age_months: 0, gender: "male"   as const, size: "large"  as const, country: "ES", city: "Madrid",    primary_image_url: "https://images.unsplash.com/photo-1552053831-71594a27632d?w=400&h=300&fit=crop&auto=format&q=80", partner: { name: "Paws of Spain",     country: "ES", city: "Madrid",   verified: true } },
-  { id: "d1000001-0000-0000-0000-000000000007", name: "Daisy",   breed: "Keverék",           age_years: 1, age_months: 0, gender: "female" as const, size: "small"  as const, country: "DE", city: "Berlin",    primary_image_url: "https://images.unsplash.com/photo-1548199973-03cce0bbc87b?w=400&h=300&fit=crop&auto=format&q=80", partner: { name: "Happy Paws Rescue", country: "DE", city: "Berlin",   verified: true } },
-  { id: "d1000001-0000-0000-0000-000000000008", name: "Jack",    breed: "Német juhász",      age_years: 6, age_months: 0, gender: "male"   as const, size: "large"  as const, country: "HU", city: "Budapest",  primary_image_url: "https://images.unsplash.com/photo-1589941013453-ec89f33b5e95?w=400&h=300&fit=crop&auto=format&q=80", partner: { name: "Magyar Állatvédők",  country: "HU", city: "Budapest", verified: true } },
-  { id: "d1000001-0000-0000-0000-000000000009", name: "Nina",    breed: "Husky keverék",     age_years: 3, age_months: 0, gender: "female" as const, size: "medium" as const, country: "ES", city: "Madrid",    primary_image_url: "https://images.unsplash.com/photo-1605568427561-40dd23c2acea?w=400&h=300&fit=crop&auto=format&q=80", partner: { name: "Paws of Spain",     country: "ES", city: "Madrid",   verified: true } },
-  { id: "d1000001-0000-0000-0000-000000000010", name: "Bruno",   breed: "Rottweiler keverék",age_years: 7, age_months: 0, gender: "male"   as const, size: "large"  as const, country: "DE", city: "Berlin",    primary_image_url: "https://images.unsplash.com/photo-1567752881298-894bb81f9379?w=400&h=300&fit=crop&auto=format&q=80", partner: { name: "Happy Paws Rescue", country: "DE", city: "Berlin",   verified: true } },
-  { id: "d1000001-0000-0000-0000-000000000011", name: "Coco",    breed: "Uszkár keverék",    age_years: 2, age_months: 0, gender: "female" as const, size: "small"  as const, country: "HU", city: "Budapest",  primary_image_url: "https://images.unsplash.com/photo-1591946614720-90a587da4a36?w=400&h=300&fit=crop&auto=format&q=80", partner: { name: "Magyar Állatvédők",  country: "HU", city: "Budapest", verified: true } },
-  { id: "d1000001-0000-0000-0000-000000000012", name: "Rex",     breed: "Malinois keverék",  age_years: 4, age_months: 0, gender: "male"   as const, size: "large"  as const, country: "ES", city: "Madrid",    primary_image_url: "https://images.unsplash.com/photo-1561037404-61cd46aa615b?w=400&h=300&fit=crop&auto=format&q=80", partner: { name: "Paws of Spain",     country: "ES", city: "Madrid",   verified: true } },
-];
 
 function formatAge(age_years: number | null, age_months: number | null): string {
   if (age_years === null && age_months === null) return "Ismeretlen kor";
@@ -41,104 +33,154 @@ function formatAge(age_years: number | null, age_months: number | null): string 
   return `${age_years} éves`;
 }
 
-type DogWithPartner = Dog & {
-  partner?: { name: string; country: string | null; city: string | null; verified: boolean } | null
+const PAGE_SIZE = 12;
+
+interface PageProps {
+  searchParams: Promise<{
+    q?: string;
+    country?: string;
+    size?: string;
+    gender?: string;
+    age?: string;
+    page?: string;
+    sort?: string;
+  }>;
+}
+
+type DogRow = {
+  id: string;
+  name: string;
+  breed: string | null;
+  age_years: number | null;
+  age_months: number | null;
+  gender: string | null;
+  size: string | null;
+  country: string | null;
+  city: string | null;
+  primary_image_url: string | null;
+  partner: {
+    name: string;
+    country: string | null;
+    city: string | null;
+    verified: boolean;
+    slug: string;
+  } | null;
 };
 
-export default async function KutyakPage() {
-  let displayDogs: DogWithPartner[] = [];
+export default async function KutyakPage({ searchParams }: PageProps) {
+  const sp = await searchParams;
+
+  const q = sp.q ?? "";
+  const country = sp.country ?? "";
+  const size = sp.size ?? "";
+  const gender = sp.gender ?? "";
+  const age = sp.age ?? "";
+  const sort = sp.sort ?? "newest";
+  const page = Math.max(1, parseInt(sp.page ?? "1", 10));
+  const offset = (page - 1) * PAGE_SIZE;
+
+  let dogs: DogRow[] = [];
+  let totalCount = 0;
 
   try {
     const supabase = await createClient();
-    const { data: dogs } = await supabase
-      .from("dogs")
-      .select("*, partner:partners(name, country, city, verified)")
-      .eq("status", "available")
-      .order("created_at", { ascending: false })
-      .limit(12);
 
-    displayDogs = (dogs && dogs.length > 0) ? (dogs as DogWithPartner[]) : (staticFallback as unknown as DogWithPartner[]);
+    let query = supabase
+      .from("dogs")
+      .select("id, name, breed, age_years, age_months, gender, size, country, city, primary_image_url, partner:partners(name, country, city, verified, slug)", {
+        count: "exact",
+      })
+      .eq("status", "available");
+
+    if (q) {
+      query = query.or(`name.ilike.%${q}%,breed.ilike.%${q}%`);
+    }
+    if (country) {
+      query = query.eq("country", country);
+    }
+    if (size) {
+      query = query.eq("size", size);
+    }
+    if (gender) {
+      query = query.eq("gender", gender);
+    }
+    if (age) {
+      if (age === "puppy") {
+        query = query.gte("age_years", 0).lte("age_years", 0);
+      } else if (age === "young") {
+        query = query.gte("age_years", 1).lte("age_years", 2);
+      } else if (age === "adult") {
+        query = query.gte("age_years", 3).lte("age_years", 6);
+      } else if (age === "senior") {
+        query = query.gte("age_years", 7);
+      }
+    }
+
+    if (sort === "youngest") {
+      query = query.order("age_years", { ascending: true });
+    } else if (sort === "oldest") {
+      query = query.order("age_years", { ascending: false });
+    } else {
+      query = query.order("created_at", { ascending: false });
+    }
+
+    query = query.range(offset, offset + PAGE_SIZE - 1);
+
+    const { data, count, error } = await query;
+
+    if (!error && data) {
+      dogs = data.map((d) => ({
+        ...d,
+        partner: Array.isArray(d.partner) ? (d.partner[0] ?? null) : d.partner,
+      })) as DogRow[];
+      totalCount = count ?? 0;
+    }
   } catch {
-    displayDogs = staticFallback as unknown as DogWithPartner[];
+    // leave empty, show empty state
+  }
+
+  const totalPages = Math.max(1, Math.ceil(totalCount / PAGE_SIZE));
+
+  // Build URL helper preserving all current filters
+  function pageUrl(p: number) {
+    const params = new URLSearchParams();
+    if (q) params.set("q", q);
+    if (country) params.set("country", country);
+    if (size) params.set("size", size);
+    if (gender) params.set("gender", gender);
+    if (age) params.set("age", age);
+    if (sort && sort !== "newest") params.set("sort", sort);
+    params.set("page", String(p));
+    return `/kutyak?${params.toString()}`;
+  }
+
+  // Build pagination page numbers
+  const pageNumbers: (number | "...")[] = [];
+  if (totalPages <= 7) {
+    for (let i = 1; i <= totalPages; i++) pageNumbers.push(i);
+  } else {
+    pageNumbers.push(1);
+    if (page > 3) pageNumbers.push("...");
+    for (let i = Math.max(2, page - 1); i <= Math.min(totalPages - 1, page + 1); i++) {
+      pageNumbers.push(i);
+    }
+    if (page < totalPages - 2) pageNumbers.push("...");
+    pageNumbers.push(totalPages);
   }
 
   return (
     <div className="min-h-screen bg-[#F7F8F5]">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
         <div className="flex flex-col lg:flex-row gap-8">
-          {/* Sidebar filters */}
+          {/* Sidebar filters (Client Component) */}
           <aside className="lg:w-72 shrink-0">
-            <div className="bg-white rounded-2xl shadow-sm border border-[#E2E8F0] p-6 sticky top-24">
-              <h2 className="text-lg font-bold text-[#1C1C1C] mb-6">Szűrők</h2>
-              <div className="space-y-5">
-                <div>
-                  <label className="block text-sm font-semibold text-[#4A5568] mb-2">Keresés</label>
-                  <input type="text" placeholder="Kutya neve, fajta..." className="w-full border border-[#E2E8F0] rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-[#3D7A3D] bg-white" />
-                </div>
-                <div>
-                  <label className="block text-sm font-semibold text-[#4A5568] mb-2">Ország</label>
-                  <select className="w-full border border-[#E2E8F0] rounded-xl px-4 py-2.5 text-sm text-[#4A5568] focus:outline-none focus:ring-2 focus:ring-[#3D7A3D] bg-white">
-                    <option>Összes ország</option>
-                    <option>🇭🇺 Magyarország</option>
-                    <option>🇩🇪 Németország</option>
-                    <option>🇪🇸 Spanyolország</option>
-                    <option>🇫🇷 Franciaország</option>
-                    <option>🇮🇹 Olaszország</option>
-                    <option>🇳🇱 Hollandia</option>
-                    <option>🇵🇱 Lengyelország</option>
-                    <option>🇦🇹 Ausztria</option>
-                    <option>🇨🇿 Csehország</option>
-                  </select>
-                </div>
-                <div>
-                  <label className="block text-sm font-semibold text-[#4A5568] mb-2">Fajta</label>
-                  <select className="w-full border border-[#E2E8F0] rounded-xl px-4 py-2.5 text-sm text-[#4A5568] focus:outline-none focus:ring-2 focus:ring-[#3D7A3D] bg-white">
-                    <option>Összes fajta</option>
-                    <option>Keverék</option>
-                    <option>Labrador</option>
-                    <option>Border Collie</option>
-                    <option>Golden Retriever</option>
-                    <option>Német juhász</option>
-                    <option>Husky</option>
-                    <option>Beagle</option>
-                    <option>Uszkár</option>
-                    <option>Malinois</option>
-                  </select>
-                </div>
-                <div>
-                  <label className="block text-sm font-semibold text-[#4A5568] mb-2">Kor</label>
-                  <select className="w-full border border-[#E2E8F0] rounded-xl px-4 py-2.5 text-sm text-[#4A5568] focus:outline-none focus:ring-2 focus:ring-[#3D7A3D] bg-white">
-                    <option>Összes kor</option>
-                    <option>Kölyök (0-1 év)</option>
-                    <option>Fiatal (1-3 év)</option>
-                    <option>Felnőtt (3-7 év)</option>
-                    <option>Idős (7+ év)</option>
-                  </select>
-                </div>
-                <div>
-                  <label className="block text-sm font-semibold text-[#4A5568] mb-2">Méret</label>
-                  <select className="w-full border border-[#E2E8F0] rounded-xl px-4 py-2.5 text-sm text-[#4A5568] focus:outline-none focus:ring-2 focus:ring-[#3D7A3D] bg-white">
-                    <option>Összes méret</option>
-                    <option>Kis (0-10 kg)</option>
-                    <option>Közepes (10-25 kg)</option>
-                    <option>Nagy (25+ kg)</option>
-                  </select>
-                </div>
-                <div>
-                  <label className="block text-sm font-semibold text-[#4A5568] mb-2">Ivar</label>
-                  <div className="flex gap-3">
-                    <label className="flex items-center gap-2 text-sm text-[#4A5568] cursor-pointer">
-                      <input type="checkbox" className="rounded accent-[#3D7A3D]" /> Szuka
-                    </label>
-                    <label className="flex items-center gap-2 text-sm text-[#4A5568] cursor-pointer">
-                      <input type="checkbox" className="rounded accent-[#3D7A3D]" /> Kan
-                    </label>
-                  </div>
-                </div>
-                <button className="w-full bg-[#1B4D2F] hover:bg-[#1A3D2B] text-white font-semibold py-3 rounded-xl transition-colors">Szűrés</button>
-                <button className="w-full text-sm text-[#4A5568] hover:text-[#1A3D2B] underline">Szűrők törlése</button>
-              </div>
-            </div>
+            <Suspense
+              fallback={
+                <div className="bg-white rounded-2xl border border-[#E2E8F0] p-6 h-96 animate-pulse" />
+              }
+            >
+              <KutyakFilters />
+            </Suspense>
           </aside>
 
           {/* Main content */}
@@ -146,64 +188,126 @@ export default async function KutyakPage() {
             <div className="flex flex-col sm:flex-row sm:items-center justify-between mb-6 gap-4">
               <div>
                 <h1 className="text-2xl font-bold text-[#1C1C1C]">Kutyák keresése</h1>
-                <p className="text-sm text-[#4A5568] mt-1">Találatok: <strong>{displayDogs.length} kutya</strong></p>
+                <p className="text-sm text-[#4A5568] mt-1">
+                  Találatok: <strong>{totalCount} kutya</strong>
+                </p>
               </div>
-              <select className="border border-[#E2E8F0] rounded-xl px-4 py-2.5 text-sm text-[#4A5568] bg-white focus:outline-none focus:ring-2 focus:ring-[#3D7A3D]">
-                <option>Legfrissebb</option>
-                <option>Kor szerint (fiatal)</option>
-                <option>Kor szerint (idős)</option>
-              </select>
             </div>
 
-            <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-5">
-              {displayDogs.map((dog) => {
-                const emoji = dog.country ? (countryEmoji[dog.country] ?? "") : "";
-                const cName = dog.country ? (countryName[dog.country] ?? dog.country) : "";
-                const ageStr = formatAge(dog.age_years ?? null, dog.age_months ?? null);
-                const gStr = dog.gender ? (genderLabel[dog.gender] ?? dog.gender) : "";
-                const sStr = dog.size ? (sizeLabel[dog.size] ?? dog.size) : "";
-                const imgSrc = dog.primary_image_url ?? "https://images.unsplash.com/photo-1587300003388-59208cc962cb?w=400&h=300&fit=crop&auto=format&q=80";
+            {dogs.length === 0 ? (
+              <div className="text-center py-20">
+                <div className="text-5xl mb-4">🐾</div>
+                <h2 className="text-xl font-bold text-[#1C1C1C] mb-2">Nincs találat</h2>
+                <p className="text-[#4A5568]">Próbálj más szűrőkkel keresni.</p>
+                <Link
+                  href="/kutyak"
+                  className="mt-4 inline-block text-sm text-[#3D7A3D] hover:underline"
+                >
+                  Szűrők törlése
+                </Link>
+              </div>
+            ) : (
+              <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-5">
+                {dogs.map((dog) => {
+                  const emoji = dog.country ? (countryEmoji[dog.country] ?? "") : "";
+                  const cName = dog.country ? (countryName[dog.country] ?? dog.country) : "";
+                  const ageStr = formatAge(dog.age_years ?? null, dog.age_months ?? null);
+                  const gStr = dog.gender ? (genderLabel[dog.gender] ?? dog.gender) : "";
+                  const sStr = dog.size ? (sizeLabel[dog.size] ?? dog.size) : "";
+                  const imgSrc =
+                    dog.primary_image_url ??
+                    "https://images.unsplash.com/photo-1587300003388-59208cc962cb?w=400&h=300&fit=crop&auto=format&q=80";
 
-                return (
-                  <div key={dog.id} className="bg-white rounded-2xl overflow-hidden shadow-sm hover:shadow-md transition-shadow border border-[#E2E8F0]">
-                    <div className="relative h-48 w-full">
-                      <Image
-                        src={imgSrc}
-                        alt={`${dog.name} – ${dog.breed ?? "kutya"}`}
-                        fill
-                        className="object-cover"
-                        sizes="(max-width: 640px) 100vw, (max-width: 1280px) 50vw, 33vw"
-                      />
-                      <button className="absolute top-3 right-3 p-1.5 bg-white/80 backdrop-blur-sm rounded-full text-[#9CA3AF] hover:text-red-500 transition-colors shadow-sm" aria-label="Kedvencekhez">
-                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
-                        </svg>
-                      </button>
+                  return (
+                    <div
+                      key={dog.id}
+                      className="bg-white rounded-2xl overflow-hidden shadow-sm hover:shadow-md transition-shadow border border-[#E2E8F0]"
+                    >
+                      <div className="relative h-48 w-full">
+                        <Image
+                          src={imgSrc}
+                          alt={`${dog.name} – ${dog.breed ?? "kutya"}`}
+                          fill
+                          className="object-cover"
+                          sizes="(max-width: 640px) 100vw, (max-width: 1280px) 50vw, 33vw"
+                        />
+                      </div>
+                      <div className="p-4">
+                        <h3 className="text-base font-bold text-[#1C1C1C] mb-0.5">{dog.name}</h3>
+                        <p className="text-xs text-[#4A5568] mb-0.5">
+                          {ageStr} · {gStr} · {sStr}
+                        </p>
+                        <p className="text-xs text-[#4A5568] mb-0.5">{dog.breed ?? "Keverék"}</p>
+                        <p className="text-xs text-[#4A5568] mb-1">
+                          {emoji} {cName}
+                        </p>
+                        {dog.partner && (
+                          <p className="text-xs mb-3">
+                            {dog.partner.slug ? (
+                              <Link
+                                href={`/partners/${dog.partner.slug}`}
+                                className="text-[#3D7A3D] hover:underline"
+                              >
+                                {dog.partner.name}
+                              </Link>
+                            ) : (
+                              <span className="text-[#4A5568]">{dog.partner.name}</span>
+                            )}
+                          </p>
+                        )}
+                        <Link
+                          href={`/kutyak/${dog.id}`}
+                          className="block w-full text-center bg-[#E8F5E9] hover:bg-[#1B4D2F] hover:text-white text-[#1A3D2B] font-semibold py-2 rounded-xl transition-colors text-sm"
+                        >
+                          Megnézem
+                        </Link>
+                      </div>
                     </div>
-                    <div className="p-4">
-                      <h3 className="text-base font-bold text-[#1C1C1C] mb-0.5">{dog.name}</h3>
-                      <p className="text-xs text-[#4A5568] mb-0.5">{ageStr} · {gStr} · {sStr}</p>
-                      <p className="text-xs text-[#4A5568] mb-0.5">{dog.breed ?? "Keverék"}</p>
-                      <p className="text-xs text-[#4A5568] mb-3">{emoji} {cName}</p>
-                      <Link href={`/kutyak/${dog.id}`} className="block w-full text-center bg-[#E8F5E9] hover:bg-[#1B4D2F] hover:text-white text-[#1A3D2B] font-semibold py-2 rounded-xl transition-colors text-sm">
-                        Megnézem
-                      </Link>
-                    </div>
-                  </div>
-                );
-              })}
-            </div>
+                  );
+                })}
+              </div>
+            )}
 
             {/* Pagination */}
-            <div className="flex items-center justify-center gap-2 mt-10">
-              <button className="w-10 h-10 rounded-xl border border-[#E2E8F0] bg-white text-[#4A5568] hover:bg-[#E8F5E9] flex items-center justify-center text-sm font-medium">←</button>
-              {[1, 2, 3].map((p) => (
-                <button key={p} className={`w-10 h-10 rounded-xl text-sm font-medium transition-colors ${p === 1 ? "bg-[#1B4D2F] text-white" : "border border-[#E2E8F0] bg-white text-[#4A5568] hover:bg-[#E8F5E9]"}`}>{p}</button>
-              ))}
-              <span className="text-[#4A5568] px-2">...</span>
-              <button className="w-10 h-10 rounded-xl border border-[#E2E8F0] bg-white text-[#4A5568] hover:bg-[#E8F5E9] flex items-center justify-center text-sm font-medium">54</button>
-              <button className="w-10 h-10 rounded-xl border border-[#E2E8F0] bg-white text-[#4A5568] hover:bg-[#E8F5E9] flex items-center justify-center text-sm font-medium">→</button>
-            </div>
+            {totalPages > 1 && (
+              <div className="flex items-center justify-center gap-2 mt-10 flex-wrap">
+                {page > 1 && (
+                  <Link
+                    href={pageUrl(page - 1)}
+                    className="w-10 h-10 rounded-xl border border-[#E2E8F0] bg-white text-[#4A5568] hover:bg-[#E8F5E9] flex items-center justify-center text-sm font-medium"
+                  >
+                    ←
+                  </Link>
+                )}
+                {pageNumbers.map((p, i) =>
+                  p === "..." ? (
+                    <span key={`ellipsis-${i}`} className="text-[#4A5568] px-2">
+                      ...
+                    </span>
+                  ) : (
+                    <Link
+                      key={p}
+                      href={pageUrl(p as number)}
+                      className={`w-10 h-10 rounded-xl text-sm font-medium transition-colors flex items-center justify-center ${
+                        p === page
+                          ? "bg-[#1B4D2F] text-white"
+                          : "border border-[#E2E8F0] bg-white text-[#4A5568] hover:bg-[#E8F5E9]"
+                      }`}
+                    >
+                      {p}
+                    </Link>
+                  )
+                )}
+                {page < totalPages && (
+                  <Link
+                    href={pageUrl(page + 1)}
+                    className="w-10 h-10 rounded-xl border border-[#E2E8F0] bg-white text-[#4A5568] hover:bg-[#E8F5E9] flex items-center justify-center text-sm font-medium"
+                  >
+                    →
+                  </Link>
+                )}
+              </div>
+            )}
           </div>
         </div>
       </div>
