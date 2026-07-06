@@ -71,21 +71,16 @@ export default async function HomePage() {
     <div className="flex flex-col">
 
       {/* ── HERO ─────────────────────────────────────────────────── */}
-      <section className="relative overflow-hidden" style={{ minHeight: "520px" }}>
-        {/* Mobile: anchor to top-right so dog head is visible */}
+      <section className="relative overflow-hidden lg:min-h-[520px]">
+        {/* DESKTOP background image */}
         <Image
           src="/hero-dog.png"
-          alt="Boldog golden retriever természetes környezetben"
+          alt=""
+          aria-hidden
           fill
           priority
-          className="object-cover object-[70%_15%] lg:object-center"
-          sizes="100vw"
-        />
-
-        {/* MOBILE overlay */}
-        <div
-          className="absolute inset-0 lg:hidden"
-          style={{ background: "linear-gradient(to bottom, rgba(255,255,255,0.45) 0%, rgba(255,255,255,0.6) 55%, rgba(247,248,245,1) 100%)" }}
+          className="hidden lg:block object-cover object-center"
+          sizes="(min-width: 1024px) 100vw, 1px"
         />
         {/* DESKTOP overlay */}
         <div
@@ -93,47 +88,79 @@ export default async function HomePage() {
           style={{ background: "linear-gradient(to right, rgba(255,255,255,0.97) 0%, rgba(255,255,255,0.88) 30%, rgba(255,255,255,0.55) 55%, rgba(255,255,255,0.0) 75%)" }}
         />
 
-        <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-6 pb-44 lg:pt-14 lg:pb-52">
-          <div className="max-w-[560px]">
+        {/* MOBILE background */}
+        <div className="absolute inset-0 lg:hidden bg-gradient-to-b from-[#E9F3E7] via-[#F6FAF4] to-[#F7F8F5]" />
+        <div
+          className="absolute -top-24 -right-20 w-72 h-72 rounded-full lg:hidden"
+          style={{ background: "radial-gradient(circle, rgba(61,122,61,0.16) 0%, rgba(61,122,61,0) 70%)" }}
+        />
+        <div
+          className="absolute top-32 -left-24 w-64 h-64 rounded-full lg:hidden"
+          style={{ background: "radial-gradient(circle, rgba(26,61,43,0.10) 0%, rgba(26,61,43,0) 70%)" }}
+        />
+
+        <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-8 pb-8 lg:pt-14 lg:pb-52">
+          <div className="max-w-[560px] mx-auto lg:mx-0 text-center lg:text-left">
             {/* Badge */}
-            <div className="inline-flex items-center gap-1.5 bg-white/90 backdrop-blur-sm text-[#1A3D2B] text-[12px] font-semibold px-3 py-1.5 rounded-full mb-4 shadow-sm border border-white/60">
+            <div className="inline-flex items-center gap-1.5 bg-white/90 backdrop-blur-sm text-[#1A3D2B] text-[12px] font-semibold px-3.5 py-1.5 rounded-full mb-5 shadow-sm border border-[#DCEBD8]">
               <span>🐾</span>
               <span>Több ezer kutya vár szerető otthonra</span>
               <span>❤️</span>
             </div>
 
-            <h1 className="font-bold leading-[1.15] mb-3 text-[#111827]" style={{ fontSize: "clamp(1.7rem, 6vw, 3.5rem)" }}>
+            <h1 className="font-bold leading-[1.1] mb-4 text-[#111827] tracking-tight" style={{ fontSize: "clamp(2.1rem, 8vw, 3.5rem)" }}>
               Együtt egy jobb életért
               <br />
               <span style={{ color: "#1A3D2B" }}>minden kutyának.</span>
             </h1>
 
-            <p className="text-[13px] lg:text-[16px] leading-relaxed mb-5 text-[#374151]">
+            <p className="text-[15px] lg:text-[16px] leading-relaxed mb-6 text-[#4B5563] max-w-[420px] mx-auto lg:mx-0 lg:max-w-none">
               Nemzetközi platform örökbefogadáshoz, menhelyekhez,
               fajtamentőkhöz, állatorvosokhoz és kutyás szolgáltatókhoz.
             </p>
 
-            <div className="flex flex-col sm:flex-row gap-2.5">
+            <div className="flex flex-col sm:flex-row gap-3 justify-center lg:justify-start">
               <Link
                 href="/kutyak"
-                className="inline-flex items-center justify-center gap-2 text-white font-semibold px-5 py-3.5 rounded-2xl transition-colors text-[14px] shadow-md w-full sm:w-auto"
+                className="inline-flex items-center justify-center gap-2 text-white font-semibold px-6 py-4 lg:py-3.5 rounded-2xl transition-colors text-[15px] lg:text-[14px] shadow-lg shadow-[#1A3D2B]/20 w-full sm:w-auto active:scale-[0.98]"
                 style={{ backgroundColor: "#1A3D2B" }}
               >
                 🐾 Kutyák böngészése
               </Link>
               <Link
                 href="/szolgaltatasok"
-                className="inline-flex items-center justify-center gap-2 border border-[#D1D5DB] bg-white/85 backdrop-blur-sm text-[#374151] hover:bg-white font-semibold px-5 py-3.5 rounded-2xl transition-colors text-[14px] shadow-sm w-full sm:w-auto"
+                className="inline-flex items-center justify-center gap-2 border border-[#D1D5DB] bg-white/85 backdrop-blur-sm text-[#374151] hover:bg-white font-semibold px-6 py-4 lg:py-3.5 rounded-2xl transition-colors text-[15px] lg:text-[14px] shadow-sm w-full sm:w-auto active:scale-[0.98]"
               >
                 ❤️ Hogyan működik?
               </Link>
+            </div>
+
+            {/* MOBILE image card */}
+            <div className="relative mt-8 lg:hidden rounded-3xl overflow-hidden shadow-xl aspect-[4/3] ring-1 ring-black/5">
+              <Image
+                src="/hero-dog.png"
+                alt="Boldog golden retriever természetes környezetben"
+                fill
+                priority
+                className="object-cover object-[68%_22%]"
+                sizes="(max-width: 1024px) 100vw, 1px"
+              />
+              <div className="absolute inset-x-0 bottom-0 h-24 bg-gradient-to-t from-black/30 to-transparent" />
+              <div className="absolute top-3 right-3 flex items-center gap-1.5 bg-white/95 backdrop-blur-sm rounded-full px-3 py-1.5 shadow-md text-[12px] font-semibold text-[#1A3D2B]">
+                <span>🛡️</span>
+                <span>Ellenőrzött menhelyek</span>
+              </div>
+              <div className="absolute bottom-4 left-4 flex items-center gap-1.5 bg-white/95 backdrop-blur-sm rounded-full px-3 py-1.5 shadow-md text-[12px] font-semibold text-[#1A3D2B]">
+                <span>🐾</span>
+                <span>18 450+ kutya · 32 ország</span>
+              </div>
             </div>
           </div>
         </div>
       </section>
 
       {/* ── SEARCH WIDGET ─────────────────────────────────────────── */}
-      <div className="relative z-20 -mt-40 sm:-mt-36 px-4 sm:px-6 lg:px-8 pb-2">
+      <div className="relative z-20 -mt-14 lg:-mt-36 px-4 sm:px-6 lg:px-8 pb-2">
         <div className="max-w-5xl mx-auto bg-white rounded-2xl shadow-xl border border-[#E5E7EB] overflow-hidden">
 
           {/* Tabs: text on desktop, icons-only on mobile */}
