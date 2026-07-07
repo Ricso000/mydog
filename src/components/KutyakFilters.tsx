@@ -27,6 +27,7 @@ export function KutyakFilters() {
   const [size, setSize] = useState(sp.get("size") ?? "");
   const [gender, setGender] = useState(sp.get("gender") ?? "");
   const [age, setAge] = useState(sp.get("age") ?? "");
+  const [transportable, setTransportable] = useState(sp.get("transportable") === "1");
   const [sort, setSort] = useState(sp.get("sort") ?? "newest");
 
   function apply() {
@@ -36,6 +37,7 @@ export function KutyakFilters() {
     if (size) params.set("size", size);
     if (gender) params.set("gender", gender);
     if (age) params.set("age", age);
+    if (transportable) params.set("transportable", "1");
     if (sort && sort !== "newest") params.set("sort", sort);
     router.push(`/kutyak?${params.toString()}`);
   }
@@ -46,6 +48,7 @@ export function KutyakFilters() {
     setSize("");
     setGender("");
     setAge("");
+    setTransportable(false);
     setSort("newest");
     router.push("/kutyak");
   }
@@ -140,6 +143,19 @@ export function KutyakFilters() {
             <option value="adult">Felnőtt (3–7 év)</option>
             <option value="senior">Idős (7+ év)</option>
           </select>
+        </div>
+
+        {/* Transportable */}
+        <div>
+          <label className="flex items-center gap-2 text-sm text-[#4A5568] cursor-pointer">
+            <input
+              type="checkbox"
+              checked={transportable}
+              onChange={(e) => setTransportable(e.target.checked)}
+              className="accent-[#3D7A3D] w-4 h-4"
+            />
+            Csak szállítható kutyák
+          </label>
         </div>
 
         {/* Sort */}

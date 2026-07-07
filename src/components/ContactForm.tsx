@@ -1,6 +1,5 @@
 "use client";
 import { useState } from "react";
-import { createClient } from "@/lib/supabase/client";
 
 interface ContactFormProps {
   dogId: string;
@@ -8,7 +7,7 @@ interface ContactFormProps {
   dogName: string;
 }
 
-export function ContactForm({ dogId, partnerId, dogName }: ContactFormProps) {
+export function ContactForm({ dogId, dogName }: ContactFormProps) {
   const [form, setForm] = useState({ name: "", email: "", phone: "", message: "" });
   const [loading, setLoading] = useState(false);
   const [submitted, setSubmitted] = useState(false);
@@ -22,24 +21,26 @@ export function ContactForm({ dogId, partnerId, dogName }: ContactFormProps) {
       return;
     }
     setLoading(true);
-    const supabase = createClient();
-    const { error: insertError } = await supabase.from("adoption_applications").insert({
-      dog_id: dogId,
-      partner_id: partnerId ?? null,
-      contact_name: form.name,
-      contact_email: form.email,
-      contact_phone: form.phone || null,
-      message: form.message || null,
-      status: "submitted",
-    });
-    if (insertError) {
-      if (insertError.code === "42501") {
-        setError("A kapcsolatfelvételhez bejelentkezés szükséges. Kérjük, vedd fel a kapcsolatot a menhellyel közvetlenül.");
+    try {
+      const res = await fetch("/api/applications", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          dogId,
+          name: form.name,
+          email: form.email,
+          phone: form.phone,
+          message: form.message,
+        }),
+      });
+      if (res.ok) {
+        setSubmitted(true);
       } else {
-        setError("Hiba történt. Kérjük, próbáld újra.");
+        const data = await res.json().catch(() => null);
+        setError(data?.error ?? "Hiba történt. Kérjük, próbáld újra.");
       }
-    } else {
-      setSubmitted(true);
+    } catch {
+      setError("Hiba történt. Kérjük, próbáld újra.");
     }
     setLoading(false);
   }

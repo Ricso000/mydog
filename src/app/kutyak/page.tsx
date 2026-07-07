@@ -42,6 +42,7 @@ interface PageProps {
     size?: string;
     gender?: string;
     age?: string;
+    transportable?: string;
     page?: string;
     sort?: string;
   }>;
@@ -75,6 +76,7 @@ export default async function KutyakPage({ searchParams }: PageProps) {
   const size = sp.size ?? "";
   const gender = sp.gender ?? "";
   const age = sp.age ?? "";
+  const transportable = sp.transportable === "1";
   const sort = sp.sort ?? "newest";
   const page = Math.max(1, parseInt(sp.page ?? "1", 10));
   const offset = (page - 1) * PAGE_SIZE;
@@ -103,6 +105,9 @@ export default async function KutyakPage({ searchParams }: PageProps) {
     }
     if (gender) {
       query = query.eq("gender", gender);
+    }
+    if (transportable) {
+      query = query.eq("is_transportable", true);
     }
     if (age) {
       if (age === "puppy") {
@@ -149,6 +154,7 @@ export default async function KutyakPage({ searchParams }: PageProps) {
     if (size) params.set("size", size);
     if (gender) params.set("gender", gender);
     if (age) params.set("age", age);
+    if (transportable) params.set("transportable", "1");
     if (sort && sort !== "newest") params.set("sort", sort);
     params.set("page", String(p));
     return `/kutyak?${params.toString()}`;

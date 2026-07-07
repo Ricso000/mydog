@@ -3,6 +3,7 @@ import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 import Link from "next/link";
+import { DogImageUpload } from "@/components/DogImageUpload";
 
 const GENDERS = [{ value: "male", label: "Kan" }, { value: "female", label: "Szuka" }];
 const SIZES = [
@@ -160,9 +161,8 @@ export default function NewDogPage() {
               <textarea value={form.description} onChange={e => setField("description", e.target.value)} rows={4} className={inputClass} placeholder="Mesélj a kutyáról..." />
             </div>
             <div className="sm:col-span-2">
-              <label className={labelClass}>Fotó URL</label>
-              <input type="url" value={form.primary_image_url} onChange={e => setField("primary_image_url", e.target.value)} className={inputClass} placeholder="https://..." />
-              <p className="text-xs text-[#4A5568] mt-1">Ideiglenesen URL-t kérünk. Hamarosan közvetlen feltöltés is elérhető lesz.</p>
+              <label className={labelClass}>Fotó</label>
+              <DogImageUpload partnerId={partnerId} value={form.primary_image_url} onChange={url => setField("primary_image_url", url)} />
             </div>
           </div>
 

@@ -1,6 +1,7 @@
 import Link from "next/link";
 import Image from "next/image";
 import { createClient } from "@/lib/supabase/server";
+import { HeroSearch } from "@/components/HeroSearch";
 
 const countryEmoji: Record<string, string> = {
   DE: "🇩🇪", HU: "🇭🇺", ES: "🇪🇸", FR: "🇫🇷", IT: "🇮🇹",
@@ -48,8 +49,6 @@ const trustItems = [
   { icon: "👥", title: "Közösség és támogatás", desc: "Egy közösség, akik hisznek a második esélyben" },
   { icon: "🎁", title: "Minden élet számít", desc: "Segíts te is, hogy több kutya boldog életet élhessen" },
 ];
-
-const searchTabs = ["🐾 Kutyák keresése", "🏠 Menhelyek", "🐕 Fajtamentők", "💉 Állatorvosok", "📍 Kutyabarát helyek"];
 
 export default async function HomePage() {
   let featuredDogs = staticFeaturedDogs as typeof staticFeaturedDogs;
@@ -161,118 +160,7 @@ export default async function HomePage() {
 
       {/* ── SEARCH WIDGET ─────────────────────────────────────────── */}
       <div className="relative z-20 -mt-14 lg:-mt-36 px-4 sm:px-6 lg:px-8 pb-2">
-        <div className="max-w-5xl mx-auto bg-white rounded-2xl shadow-xl border border-[#E5E7EB] overflow-hidden">
-
-          {/* Tabs: text on desktop, icons-only on mobile */}
-          <div className="flex items-stretch border-b border-[#F3F4F6] overflow-x-auto">
-            {[
-              { label: "Kutyák keresése", icon: "🐾" },
-              { label: "Menhelyek",       icon: "🏠" },
-              { label: "Fajtamentők",     icon: "🐕" },
-              { label: "Állatorvosok",    icon: "💉" },
-              { label: "Kutyabarát",      icon: "📍" },
-            ].map((tab, i) => (
-              <button
-                key={tab.label}
-                className={`flex items-center justify-center gap-1.5 px-3 sm:px-5 py-3.5 text-[13px] font-semibold whitespace-nowrap transition-colors flex-1 sm:flex-none ${
-                  i === 0 ? "bg-[#1A3D2B] text-white" : "text-[#6B7280] hover:text-[#1A3D2B] hover:bg-[#F9FAFB]"
-                }`}
-              >
-                <span className="text-base">{tab.icon}</span>
-                <span className="hidden sm:inline">{tab.label}</span>
-              </button>
-            ))}
-          </div>
-
-          <div className="p-4 sm:p-5">
-            {/* Mobile: stacked filters */}
-            <div className="flex flex-col sm:hidden gap-3">
-              {[
-                { label: "Ország",    options: ["Összes ország", "Magyarország", "Németország", "Ausztria", "Románia", "Spanyolország"] },
-                { label: "Fajta",     options: ["Összes fajta", "Keverék", "Labrador", "Border Collie", "Golden Retriever"] },
-                { label: "Kor",       options: ["Bármennyi", "Kölyök (0–1 év)", "Fiatal (1–3 év)", "Felnőtt (3–7 év)", "Idős (7+ év)"] },
-                { label: "Méret",     options: ["Bármennyi", "Kis (–10 kg)", "Közepes (10–25 kg)", "Nagy (25+ kg)"] },
-              ].map(({ label, options }) => (
-                <div key={label} className="relative">
-                  <label className="absolute left-3 top-2 text-[11px] font-semibold text-[#9CA3AF] uppercase tracking-wide pointer-events-none">{label}</label>
-                  <select className="w-full appearance-none bg-white border border-[#E5E7EB] rounded-xl px-3 pt-6 pb-2.5 text-[14px] text-[#111827] font-medium pr-8 focus:outline-none focus:ring-2 focus:ring-[#1A3D2B]/20 focus:border-[#1A3D2B]">
-                    {options.map((o) => <option key={o}>{o}</option>)}
-                  </select>
-                  <svg className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[#9CA3AF] pointer-events-none" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-                  </svg>
-                </div>
-              ))}
-
-              {/* Szállítható toggle */}
-              <div className="flex items-center justify-between bg-white border border-[#E5E7EB] rounded-xl px-4 py-3.5">
-                <div>
-                  <div className="text-[11px] font-semibold text-[#9CA3AF] uppercase tracking-wide">Szállítható</div>
-                  <div className="text-[14px] text-[#111827] font-medium mt-0.5">Csak szállíthatók</div>
-                </div>
-                <div className="relative w-11 h-6 shrink-0">
-                  <div className="w-11 h-6 bg-[#D1D5DB] rounded-full"></div>
-                  <div className="absolute left-0.5 top-0.5 w-5 h-5 bg-white rounded-full shadow-sm"></div>
-                </div>
-              </div>
-
-              {/* Full-width search button on mobile */}
-              <Link
-                href="/kutyak"
-                className="flex items-center justify-center gap-2 text-white font-semibold py-4 rounded-2xl text-[15px] shadow-sm w-full"
-                style={{ backgroundColor: "#1A3D2B" }}
-              >
-                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-                </svg>
-                Keresés
-              </Link>
-            </div>
-
-            {/* Desktop: side-by-side filters */}
-            <div className="hidden sm:flex flex-wrap lg:flex-nowrap items-end gap-3">
-              {[
-                { label: "Ország", options: ["Összes ország", "Magyarország", "Németország", "Ausztria", "Románia", "Spanyolország"] },
-                { label: "Fajta",  options: ["Összes fajta", "Keverék", "Labrador", "Border Collie", "Golden Retriever"] },
-                { label: "Kor",    options: ["Bármennyi", "Kölyök (0–1 év)", "Fiatal (1–3 év)", "Felnőtt (3–7 év)", "Idős (7+ év)"] },
-                { label: "Méret",  options: ["Bármennyi", "Kis (–10 kg)", "Közepes (10–25 kg)", "Nagy (25+ kg)"] },
-              ].map(({ label, options }) => (
-                <div key={label} className="flex-1 min-w-[120px]">
-                  <label className="block text-[11px] font-semibold text-[#6B7280] mb-1.5 uppercase tracking-wide">{label}</label>
-                  <div className="relative">
-                    <select className="w-full appearance-none bg-[#F9FAFB] border border-[#E5E7EB] rounded-xl px-3 py-2.5 text-[13px] text-[#374151] font-medium pr-8 focus:outline-none focus:ring-2 focus:ring-[#1A3D2B]/20 focus:border-[#1A3D2B]">
-                      {options.map((o) => <option key={o}>{o}</option>)}
-                    </select>
-                    <svg className="absolute right-2.5 top-1/2 -translate-y-1/2 w-4 h-4 text-[#9CA3AF] pointer-events-none" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-                    </svg>
-                  </div>
-                </div>
-              ))}
-              <div className="flex-1 min-w-[140px]">
-                <label className="block text-[11px] font-semibold text-[#6B7280] mb-1.5 uppercase tracking-wide">Szállítható</label>
-                <div className="flex items-center gap-2 bg-[#F9FAFB] border border-[#E5E7EB] rounded-xl px-3 py-2.5 h-[42px]">
-                  <span className="text-[13px] text-[#374151] font-medium flex-1">Csak szállíthatók</span>
-                  <div className="relative w-10 h-5 shrink-0">
-                    <div className="w-10 h-5 bg-[#D1D5DB] rounded-full"></div>
-                    <div className="absolute left-0.5 top-0.5 w-4 h-4 bg-white rounded-full shadow-sm"></div>
-                  </div>
-                </div>
-              </div>
-              <Link href="/kutyak" className="flex items-center gap-2 text-white font-semibold px-7 py-2.5 rounded-xl text-[14px] shrink-0 shadow-sm" style={{ backgroundColor: "#1A3D2B", minHeight: "42px" }}>
-                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-                </svg>
-                Keresés
-              </Link>
-            </div>
-
-            <div className="mt-4 flex items-center justify-center gap-1.5 text-[13px] text-[#6B7280]">
-              <span>🐾</span>
-              <span>Több mint <strong className="text-[#1A3D2B] font-bold">18 450</strong> kutya <strong className="text-[#1A3D2B] font-bold">32</strong> országban</span>
-            </div>
-          </div>
-        </div>
+        <HeroSearch />
       </div>
 
       {/* ── TRUST BAR ─────────────────────────────────────────────── */}

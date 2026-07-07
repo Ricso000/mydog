@@ -3,6 +3,7 @@ import { useEffect, useState } from "react";
 import { useRouter, useParams } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 import Link from "next/link";
+import { DogImageUpload } from "@/components/DogImageUpload";
 
 const GENDERS = [{ value: "male", label: "Kan" }, { value: "female", label: "Szuka" }];
 const SIZES = [
@@ -34,6 +35,7 @@ export default function EditDogPage() {
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState("");
   const [success, setSuccess] = useState(false);
+  const [partnerId, setPartnerId] = useState<string | null>(null);
   const [form, setFormState] = useState({
     name: "", breed: "", mixed_breed: false, age_years: "", age_months: "0",
     gender: "male", size: "medium", color: "", description: "", status: "available",
@@ -51,6 +53,7 @@ export default function EditDogPage() {
       // Check membership
       const { data: m } = await supabase.from("partner_members").select("partner_id").eq("profile_id", user.id).single();
       if (!m) { router.push("/partner/dogs"); return; }
+      setPartnerId(m.partner_id);
 
       // Fetch dog — verify it belongs to the partner
       const { data: dog, error: fetchError } = await supabase
@@ -209,8 +212,8 @@ export default function EditDogPage() {
               <textarea value={form.description} onChange={e => set("description", e.target.value)} rows={4} className={inputClass} />
             </div>
             <div className="sm:col-span-2">
-              <label className={labelClass}>Fotó URL</label>
-              <input type="url" value={form.primary_image_url} onChange={e => set("primary_image_url", e.target.value)} className={inputClass} placeholder="https://..." />
+              <label className={labelClass}>Fotó</label>
+              <DogImageUpload partnerId={partnerId} value={form.primary_image_url} onChange={url => set("primary_image_url", url)} />
             </div>
           </div>
           <label className={`${checkboxClass} mt-3`}>
