@@ -10,6 +10,7 @@ const inter = Inter({
 });
 
 export const metadata: Metadata = {
+  metadataBase: new URL(process.env.NEXT_PUBLIC_SITE_URL ?? "https://rescueconnect-nu.vercel.app"),
   title: "MyDog – Együtt egy jobb életért minden kutyának",
   description:
     "Nemzetközi platform örökbefogadáshoz, menhelyekhez, fajtamentőkhöz, állatorvosokhoz és kutyás szolgáltatókhoz. Európa szerte. Egy közösség. Egy küldetés.",

@@ -75,7 +75,12 @@ function Toggle({ on, onChange }: { on: boolean; onChange: (v: boolean) => void 
   );
 }
 
-export function HeroSearch() {
+interface HeroSearchProps {
+  dogCount?: number;
+  countryCount?: number;
+}
+
+export function HeroSearch({ dogCount, countryCount }: HeroSearchProps) {
   const router = useRouter();
   const [country, setCountry] = useState("");
   const [breed, setBreed] = useState("");
@@ -201,7 +206,14 @@ export function HeroSearch() {
 
         <div className="mt-4 flex items-center justify-center gap-1.5 text-[13px] text-[#6B7280]">
           <span>🐾</span>
-          <span>Több mint <strong className="text-[#1A3D2B] font-bold">18 450</strong> kutya <strong className="text-[#1A3D2B] font-bold">32</strong> országban</span>
+          {typeof dogCount === "number" && typeof countryCount === "number" ? (
+            <span>
+              Jelenleg <strong className="text-[#1A3D2B] font-bold">{dogCount.toLocaleString("hu-HU")}</strong>{" "}
+              kutya keres gazdit <strong className="text-[#1A3D2B] font-bold">{countryCount}</strong> országban
+            </span>
+          ) : (
+            <span>Gazdikereső kutyák Európa-szerte</span>
+          )}
         </div>
       </div>
     </div>

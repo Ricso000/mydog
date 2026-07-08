@@ -52,16 +52,31 @@ const trustItems = [
 
 export default async function HomePage() {
   let featuredDogs = staticFeaturedDogs as typeof staticFeaturedDogs;
+  let stats: { dogs: number; countries: number; partners: number; adoptions: number } | null = null;
   try {
     const supabase = await createClient();
-    const { data } = await supabase
-      .from("dogs")
-      .select("id, name, breed, age_years, age_months, gender, country, primary_image_url")
-      .eq("status", "available")
-      .order("created_at", { ascending: false })
-      .limit(4);
+    const [{ data }, { count: dogCount }, { data: countryRows }, { count: partnerCount }, { count: adoptedCount }] = await Promise.all([
+      supabase
+        .from("dogs")
+        .select("id, name, breed, age_years, age_months, gender, country, primary_image_url")
+        .eq("status", "available")
+        .order("created_at", { ascending: false })
+        .limit(4),
+      supabase.from("dogs").select("id", { count: "exact", head: true }).eq("status", "available"),
+      supabase.from("dogs").select("country").eq("status", "available").not("country", "is", null).limit(1000),
+      supabase.from("partners").select("id", { count: "exact", head: true }).eq("status", "approved"),
+      supabase.from("dogs").select("id", { count: "exact", head: true }).eq("status", "adopted"),
+    ]);
     if (data && data.length > 0) {
       featuredDogs = data as typeof staticFeaturedDogs;
+    }
+    if (dogCount !== null) {
+      stats = {
+        dogs: dogCount ?? 0,
+        countries: new Set((countryRows ?? []).map((r) => r.country)).size,
+        partners: partnerCount ?? 0,
+        adoptions: adoptedCount ?? 0,
+      };
     }
   } catch {
     // use static fallback
@@ -160,7 +175,7 @@ export default async function HomePage() {
 
       {/* ── SEARCH WIDGET ─────────────────────────────────────────── */}
       <div className="relative z-20 -mt-14 lg:-mt-36 px-4 sm:px-6 lg:px-8 pb-2">
-        <HeroSearch />
+        <HeroSearch dogCount={stats?.dogs} countryCount={stats?.countries} />
       </div>
 
       {/* ── TRUST BAR ─────────────────────────────────────────────── */}
@@ -256,7 +271,12 @@ export default async function HomePage() {
               </Link>
             </div>
             <div className="grid grid-cols-2 gap-4 shrink-0">
-              {[{ value: "30+", label: "ország" }, { value: "2500+", label: "menhely" }, { value: "15k+", label: "örökbefogadás" }, { value: "8k+", label: "önkéntes" }].map((stat) => (
+              {[
+                { value: stats ? String(stats.countries) : "–", label: "ország" },
+                { value: stats ? String(stats.partners) : "–", label: "partner szervezet" },
+                { value: stats ? String(stats.dogs) : "–", label: "gazdikereső kutya" },
+                { value: stats ? String(stats.adoptions) : "–", label: "örökbefogadás" },
+              ].map((stat) => (
                 <div key={stat.label} className="rounded-2xl p-5 text-center" style={{ backgroundColor: "rgba(255,255,255,0.1)" }}>
                   <div className="text-[28px] font-bold text-white">{stat.value}</div>
                   <div className="text-[13px] mt-1" style={{ color: "#A7C4A3" }}>{stat.label}</div>

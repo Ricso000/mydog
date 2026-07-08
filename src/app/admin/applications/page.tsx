@@ -2,11 +2,11 @@ import { requireAdmin } from "@/lib/admin";
 import Link from "next/link";
 
 const APP_STATUS_LABEL: Record<string, string> = {
-  submitted: "Beküldve", under_review: "Vizsgálat alatt",
+  submitted: "Beküldve", reviewing: "Folyamatban",
   approved: "Jóváhagyva", rejected: "Elutasítva", withdrawn: "Visszavonva",
 };
 const APP_STATUS_COLOR: Record<string, string> = {
-  submitted: "bg-blue-100 text-blue-700", under_review: "bg-amber-100 text-amber-700",
+  submitted: "bg-blue-100 text-blue-700", reviewing: "bg-amber-100 text-amber-700",
   approved: "bg-green-100 text-green-700", rejected: "bg-red-100 text-red-700",
   withdrawn: "bg-gray-100 text-gray-700",
 };
@@ -37,7 +37,7 @@ export default async function AdminApplicationsPage({ searchParams }: PageProps)
 
       {/* Status filters */}
       <div className="bg-white rounded-2xl border border-[#E2E8F0] p-4 mb-6 flex flex-wrap gap-2">
-        {["", "submitted", "under_review", "approved", "rejected", "withdrawn"].map(s => (
+        {["", "submitted", "reviewing", "approved", "rejected", "withdrawn"].map(s => (
           <Link key={s || "all"} href={s ? `/admin/applications?status=${s}` : "/admin/applications"}
             className={`px-3 py-1.5 rounded-full text-xs font-semibold transition-colors ${sp.status === s || (!sp.status && !s) ? "bg-[#1A3D2B] text-white" : "bg-[#F7F8F5] text-[#4A5568] hover:bg-[#E8F5E9]"}`}>
             {s ? APP_STATUS_LABEL[s] : "Összes"}

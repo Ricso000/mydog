@@ -5,6 +5,7 @@ const navItems = [
   { href: "/partner/dashboard", icon: "🏠", label: "Áttekintés" },
   { href: "/partner/dogs", icon: "🐾", label: "Kutyáim" },
   { href: "/partner/dogs/new", icon: "➕", label: "Új kutya" },
+  { href: "/partner/applications", icon: "📨", label: "Jelentkezések" },
   { href: "/partner/profile", icon: "⚙️", label: "Profil" },
 ];
 
