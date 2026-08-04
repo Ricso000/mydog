@@ -31,6 +31,9 @@ export async function proxy(request: NextRequest) {
   const isAdminPage = path.startsWith('/admin')
   const isAdminLogin = path === '/admin/login'
 
+  const isUserAccountPage = path === '/profil' || path === '/kedvencek' || path === '/jelentkezeseim' || path === '/mentett-keresesek'
+  const isUserAuthPage = path === '/bejelentkezes' || path === '/regisztracio'
+
   if (isPartnerPage && !isAuthPage && !user) {
     const redirectUrl = new URL('/partner/login', request.url)
     redirectUrl.searchParams.set('redirect', path)
@@ -45,9 +48,19 @@ export async function proxy(request: NextRequest) {
     return NextResponse.redirect(new URL('/admin/login', request.url))
   }
 
+  if (isUserAccountPage && !user) {
+    const redirectUrl = new URL('/bejelentkezes', request.url)
+    redirectUrl.searchParams.set('redirect', path)
+    return NextResponse.redirect(redirectUrl)
+  }
+
+  if (isUserAuthPage && user) {
+    return NextResponse.redirect(new URL('/profil', request.url))
+  }
+
   return supabaseResponse
 }
 
 export const config = {
-  matcher: ['/partner/:path*', '/admin/:path*'],
+  matcher: ['/partner/:path*', '/admin/:path*', '/profil', '/kedvencek', '/jelentkezeseim', '/mentett-keresesek', '/bejelentkezes', '/regisztracio'],
 }

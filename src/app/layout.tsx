@@ -3,6 +3,7 @@ import { Inter } from "next/font/google";
 import "./globals.css";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
+import { createClient } from "@/lib/supabase/server";
 
 const inter = Inter({
   variable: "--font-sans",
@@ -49,18 +50,33 @@ export const metadata: Metadata = {
   },
 };
 
-export default function RootLayout({
+export default async function RootLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
 }>) {
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+
+  let fullName: string | null = null;
+  if (user) {
+    const { data: profile } = await supabase
+      .from("profiles")
+      .select("full_name")
+      .eq("id", user.id)
+      .single();
+    fullName = profile?.full_name || null;
+  }
+
   return (
     <html
       lang="hu"
       className={`${inter.variable} h-full antialiased`}
     >
       <body className="min-h-full flex flex-col bg-white text-[#1C1C1C]">
-        <Navbar />
+        <Navbar user={user ? { id: user.id, email: user.email ?? null } : null} fullName={fullName} />
         <main className="flex-1">
           {children}
         </main>

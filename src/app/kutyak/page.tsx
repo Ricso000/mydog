@@ -39,6 +39,7 @@ interface PageProps {
   searchParams: Promise<{
     q?: string;
     country?: string;
+    city?: string;
     size?: string;
     gender?: string;
     age?: string;
@@ -59,6 +60,11 @@ type DogRow = {
   country: string | null;
   city: string | null;
   primary_image_url: string | null;
+  is_vaccinated: boolean | null;
+  is_neutered: boolean | null;
+  good_with_kids: boolean | null;
+  good_with_dogs: boolean | null;
+  good_with_cats: boolean | null;
   partner: {
     name: string;
     country: string | null;
@@ -73,6 +79,7 @@ export default async function KutyakPage({ searchParams }: PageProps) {
 
   const q = sp.q ?? "";
   const country = sp.country ?? "";
+  const city = sp.city ?? "";
   const size = sp.size ?? "";
   const gender = sp.gender ?? "";
   const age = sp.age ?? "";
@@ -89,7 +96,7 @@ export default async function KutyakPage({ searchParams }: PageProps) {
 
     let query = supabase
       .from("dogs")
-      .select("id, name, breed, age_years, age_months, gender, size, country, city, primary_image_url, partner:partners(name, country, city, verified, slug)", {
+      .select("id, name, breed, age_years, age_months, gender, size, country, city, primary_image_url, is_vaccinated, is_neutered, good_with_kids, good_with_dogs, good_with_cats, partner:partners(name, country, city, verified, slug)", {
         count: "exact",
       })
       .eq("status", "available");
@@ -99,6 +106,9 @@ export default async function KutyakPage({ searchParams }: PageProps) {
     }
     if (country) {
       query = query.eq("country", country);
+    }
+    if (city) {
+      query = query.eq("city", city);
     }
     if (size) {
       query = query.eq("size", size);
@@ -144,6 +154,27 @@ export default async function KutyakPage({ searchParams }: PageProps) {
     // leave empty, show empty state
   }
 
+  let citiesByCountry: Record<string, string[]> = {};
+  try {
+    const supabase = await createClient();
+    const { data: cityRows } = await supabase
+      .from("dogs")
+      .select("country, city")
+      .eq("status", "available")
+      .not("city", "is", null);
+
+    (cityRows ?? []).forEach((row) => {
+      if (!row.country || !row.city) return;
+      if (!citiesByCountry[row.country]) citiesByCountry[row.country] = [];
+      if (!citiesByCountry[row.country].includes(row.city)) {
+        citiesByCountry[row.country].push(row.city);
+      }
+    });
+    Object.keys(citiesByCountry).forEach((c) => citiesByCountry[c].sort());
+  } catch {
+    citiesByCountry = {};
+  }
+
   const totalPages = Math.max(1, Math.ceil(totalCount / PAGE_SIZE));
 
   // Build URL helper preserving all current filters
@@ -151,6 +182,7 @@ export default async function KutyakPage({ searchParams }: PageProps) {
     const params = new URLSearchParams();
     if (q) params.set("q", q);
     if (country) params.set("country", country);
+    if (city) params.set("city", city);
     if (size) params.set("size", size);
     if (gender) params.set("gender", gender);
     if (age) params.set("age", age);
@@ -185,7 +217,7 @@ export default async function KutyakPage({ searchParams }: PageProps) {
                 <div className="bg-white rounded-2xl border border-[#E2E8F0] p-6 h-96 animate-pulse" />
               }
             >
-              <KutyakFilters />
+              <KutyakFilters citiesByCountry={citiesByCountry} />
             </Suspense>
           </aside>
 
@@ -247,6 +279,25 @@ export default async function KutyakPage({ searchParams }: PageProps) {
                         <p className="text-xs text-[#4A5568] mb-1">
                           {emoji} {cName}
                         </p>
+                        {(dog.is_vaccinated || dog.is_neutered || dog.good_with_kids || dog.good_with_dogs || dog.good_with_cats) && (
+                          <div className="flex flex-wrap gap-1 mb-2">
+                            {dog.is_vaccinated && (
+                              <span className="bg-[#E8F5E9] text-[#1A3D2B] text-[10px] font-semibold px-2 py-0.5 rounded-full">Oltva</span>
+                            )}
+                            {dog.is_neutered && (
+                              <span className="bg-[#E8F5E9] text-[#1A3D2B] text-[10px] font-semibold px-2 py-0.5 rounded-full">Ivartalanítva</span>
+                            )}
+                            {dog.good_with_kids && (
+                              <span className="bg-[#E8F5E9] text-[#1A3D2B] text-[10px] font-semibold px-2 py-0.5 rounded-full">Gyerekbarát</span>
+                            )}
+                            {dog.good_with_dogs && (
+                              <span className="bg-[#E8F5E9] text-[#1A3D2B] text-[10px] font-semibold px-2 py-0.5 rounded-full">Kutyabarát</span>
+                            )}
+                            {dog.good_with_cats && (
+                              <span className="bg-[#E8F5E9] text-[#1A3D2B] text-[10px] font-semibold px-2 py-0.5 rounded-full">Macskabarát</span>
+                            )}
+                          </div>
+                        )}
                         {dog.partner && (
                           <p className="text-xs mb-3">
                             {dog.partner.slug ? (

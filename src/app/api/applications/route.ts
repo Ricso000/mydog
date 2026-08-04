@@ -35,6 +35,9 @@ export async function POST(request: Request) {
   }
 
   const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
 
   // The dog row is the source of truth for the partner — don't trust client-sent partner ids
   const { data: dog, error: dogError } = await supabase
@@ -50,6 +53,7 @@ export async function POST(request: Request) {
   const { error: insertError } = await supabase.from("adoption_applications").insert({
     dog_id: dog.id,
     partner_id: dog.partner_id,
+    applicant_id: user?.id ?? null,
     contact_name: name,
     contact_email: email,
     contact_phone: phone,

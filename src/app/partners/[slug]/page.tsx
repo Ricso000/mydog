@@ -2,6 +2,7 @@ import Link from "next/link";
 import Image from "next/image";
 import { notFound } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
+import FollowPartnerButton from "@/components/FollowPartnerButton";
 
 const countryEmoji: Record<string, string> = {
   DE: "🇩🇪", HU: "🇭🇺", ES: "🇪🇸", FR: "🇫🇷", IT: "🇮🇹",
@@ -74,6 +75,20 @@ export default async function PartnerProfilePage({ params }: PageProps) {
 
   if (!partner) notFound();
 
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  let isFollowing = false;
+  if (user) {
+    const { data: followRow } = await supabase
+      .from("favorite_partners")
+      .select("partner_id")
+      .eq("profile_id", user.id)
+      .eq("partner_id", partner.id)
+      .maybeSingle();
+    isFollowing = !!followRow;
+  }
+
   const { data: dogs } = await supabase
     .from("dogs")
     .select(
@@ -143,6 +158,14 @@ export default async function PartnerProfilePage({ params }: PageProps) {
                   {cName}
                 </span>
               )}
+            </div>
+            <div className="mt-3">
+              <FollowPartnerButton
+                partnerId={partner.id}
+                isLoggedIn={!!user}
+                initialFollowing={isFollowing}
+                redirectPath={`/partners/${slug}`}
+              />
             </div>
           </div>
         </div>

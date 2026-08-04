@@ -1,7 +1,10 @@
 "use client";
 
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { useState } from "react";
+import { createClient } from "@/lib/supabase/client";
+import NotificationBell from "@/components/NotificationBell";
 
 const navLinks = [
   { href: "/kutyak", label: "Kutyák" },
@@ -14,8 +17,25 @@ const navLinks = [
   { href: "/rolunk", label: "Rólunk" },
 ];
 
-export default function Navbar() {
+interface NavbarProps {
+  user: { id: string; email: string | null } | null;
+  fullName: string | null;
+}
+
+export default function Navbar({ user, fullName }: NavbarProps) {
+  const router = useRouter();
   const [mobileOpen, setMobileOpen] = useState(false);
+  const [accountOpen, setAccountOpen] = useState(false);
+
+  async function handleSignOut() {
+    const supabase = createClient();
+    await supabase.auth.signOut();
+    setAccountOpen(false);
+    router.push("/");
+    router.refresh();
+  }
+
+  const displayName = fullName || user?.email || "Fiókom";
 
   return (
     <header className="sticky top-0 z-50 bg-white border-b border-[#E2E8F0] shadow-sm">
@@ -65,11 +85,38 @@ export default function Navbar() {
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
               </svg>
             </button>
-            <button className="p-1.5 text-[#374151] hover:text-[#1A3D2B] hover:bg-[#F0FDF4] rounded-lg transition-colors">
-              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
-              </svg>
-            </button>
+            {user ? (
+              <>
+                <NotificationBell userId={user.id} />
+                <div className="relative">
+                <button
+                  onClick={() => setAccountOpen((v) => !v)}
+                  className="flex items-center gap-1.5 text-[13px] font-medium text-[#374151] hover:text-[#1A3D2B] px-2 py-1.5 rounded-lg hover:bg-[#F0FDF4] transition-colors"
+                >
+                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                  </svg>
+                  <span className="max-w-[100px] truncate">{displayName}</span>
+                </button>
+                {accountOpen && (
+                  <div className="absolute right-0 mt-2 w-56 bg-white rounded-xl border border-[#E2E8F0] shadow-lg py-2 z-50">
+                    <Link href="/profil" onClick={() => setAccountOpen(false)} className="block px-4 py-2 text-sm text-[#374151] hover:bg-[#F0FDF4]">Profilom</Link>
+                    <Link href="/kedvencek" onClick={() => setAccountOpen(false)} className="block px-4 py-2 text-sm text-[#374151] hover:bg-[#F0FDF4]">Kedvenceim</Link>
+                    <Link href="/jelentkezeseim" onClick={() => setAccountOpen(false)} className="block px-4 py-2 text-sm text-[#374151] hover:bg-[#F0FDF4]">Jelentkezéseim</Link>
+                    <Link href="/mentett-keresesek" onClick={() => setAccountOpen(false)} className="block px-4 py-2 text-sm text-[#374151] hover:bg-[#F0FDF4]">Mentett kereséseim</Link>
+                    <button onClick={handleSignOut} className="w-full text-left px-4 py-2 text-sm text-red-600 hover:bg-red-50">Kijelentkezés</button>
+                  </div>
+                )}
+                </div>
+              </>
+            ) : (
+              <Link
+                href="/bejelentkezes"
+                className="text-[13px] font-medium text-[#374151] hover:text-[#1A3D2B] px-3 py-1.5 rounded-lg hover:bg-[#F0FDF4] transition-colors border border-[#E5E7EB]"
+              >
+                Bejelentkezés
+              </Link>
+            )}
             <Link
               href="/csatlakozas"
               className="text-[13px] font-semibold text-white bg-[#1A3D2B] hover:bg-[#15312200] px-5 py-2 rounded-xl transition-colors"
@@ -113,9 +160,27 @@ export default function Navbar() {
               </Link>
             ))}
             <div className="pt-3 border-t border-[#E2E8F0] flex flex-col gap-2">
-              <Link href="/csatlakozas" className="block px-3 py-2 text-sm font-semibold text-white bg-[#1A3D2B] rounded-xl text-center" onClick={() => setMobileOpen(false)}>
-                Regisztráció
-              </Link>
+              {user ? (
+                <>
+                  <Link href="/profil" className="block px-3 py-2 text-sm font-medium text-[#4A5568] hover:text-[#1A3D2B]" onClick={() => setMobileOpen(false)}>Profilom</Link>
+                  <Link href="/kedvencek" className="block px-3 py-2 text-sm font-medium text-[#4A5568] hover:text-[#1A3D2B]" onClick={() => setMobileOpen(false)}>Kedvenceim</Link>
+                  <Link href="/jelentkezeseim" className="block px-3 py-2 text-sm font-medium text-[#4A5568] hover:text-[#1A3D2B]" onClick={() => setMobileOpen(false)}>Jelentkezéseim</Link>
+                  <Link href="/mentett-keresesek" className="block px-3 py-2 text-sm font-medium text-[#4A5568] hover:text-[#1A3D2B]" onClick={() => setMobileOpen(false)}>Mentett kereséseim</Link>
+                  <button
+                    onClick={() => { setMobileOpen(false); handleSignOut(); }}
+                    className="block w-full text-left px-3 py-2 text-sm font-semibold text-red-600"
+                  >
+                    Kijelentkezés
+                  </button>
+                </>
+              ) : (
+                <>
+                  <Link href="/bejelentkezes" className="block px-3 py-2 text-sm font-medium text-[#4A5568] hover:text-[#1A3D2B]" onClick={() => setMobileOpen(false)}>Bejelentkezés</Link>
+                  <Link href="/csatlakozas" className="block px-3 py-2 text-sm font-semibold text-white bg-[#1A3D2B] rounded-xl text-center" onClick={() => setMobileOpen(false)}>
+                    Regisztráció
+                  </Link>
+                </>
+              )}
             </div>
           </div>
         </div>
