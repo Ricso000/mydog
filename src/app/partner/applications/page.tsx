@@ -1,5 +1,5 @@
 "use client";
-import { useCallback, useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 import Link from "next/link";
@@ -35,31 +35,37 @@ export default function PartnerApplicationsPage() {
   const [savingId, setSavingId] = useState<string | null>(null);
   const [error, setError] = useState("");
 
-  const load = useCallback(async () => {
-    const supabase = createClient();
-    const { data: { user } } = await supabase.auth.getUser();
-    if (!user) { router.push("/partner/login"); return; }
-    const { data: m } = await supabase.from("partner_members").select("partner_id").eq("profile_id", user.id).single();
-    if (!m) { router.push("/partner/dashboard"); return; }
+  useEffect(() => {
+    let cancelled = false;
 
-    const { data, error: fetchError } = await supabase
-      .from("adoption_applications")
-      .select("id, status, contact_name, contact_email, contact_phone, message, created_at, dog:dogs(id, name)")
-      .eq("partner_id", m.partner_id)
-      .order("created_at", { ascending: false });
+    async function load() {
+      const supabase = createClient();
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) { router.push("/partner/login"); return; }
+      const { data: m } = await supabase.from("partner_members").select("partner_id").eq("profile_id", user.id).single();
+      if (!m) { router.push("/partner/dashboard"); return; }
 
-    if (fetchError) {
-      setError("Nem sikerült betölteni a jelentkezéseket.");
-    } else {
-      setApps((data ?? []).map((a) => ({
-        ...a,
-        dog: Array.isArray(a.dog) ? (a.dog[0] ?? null) : a.dog,
-      })) as AppRow[]);
+      const { data, error: fetchError } = await supabase
+        .from("adoption_applications")
+        .select("id, status, contact_name, contact_email, contact_phone, message, created_at, dog:dogs(id, name)")
+        .eq("partner_id", m.partner_id)
+        .order("created_at", { ascending: false });
+
+      if (cancelled) return;
+      if (fetchError) {
+        setError("Nem sikerült betölteni a jelentkezéseket.");
+      } else {
+        setApps((data ?? []).map((a) => ({
+          ...a,
+          dog: Array.isArray(a.dog) ? (a.dog[0] ?? null) : a.dog,
+        })) as AppRow[]);
+      }
+      setLoading(false);
     }
-    setLoading(false);
-  }, [router]);
 
-  useEffect(() => { load(); }, [load]);
+    load();
+    return () => { cancelled = true; };
+  }, [router]);
 
   async function changeStatus(id: string, status: string) {
     setSavingId(id);

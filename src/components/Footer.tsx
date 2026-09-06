@@ -66,7 +66,7 @@ export default function Footer() {
               Összekötjük a megmentett kutyákat az örökbefogadókkal, a menhelyeket az önkéntesekkel.
             </p>
             <p className="text-sm font-semibold text-[#52B788] italic">
-              „Mert minden élet számít."
+              „Mert minden élet számít.”
             </p>
             <div className="flex gap-3 mt-6">
               <a href="#" className="w-9 h-9 rounded-full bg-white/10 hover:bg-white/20 flex items-center justify-center transition-colors" aria-label="Facebook">
