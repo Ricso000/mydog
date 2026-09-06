@@ -1,7 +1,6 @@
 "use client";
 import { useState } from "react";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 
 const PARTNER_TYPES = [
@@ -31,9 +30,9 @@ const COUNTRIES = [
 ];
 
 export default function PartnerRegisterPage() {
-  const router = useRouter();
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
+  const [pendingConfirmation, setPendingConfirmation] = useState(false);
   const [form, setForm] = useState({
     email: "", password: "", full_name: "",
     partner_name: "", partner_type: "shelter",
@@ -60,47 +59,62 @@ export default function PartnerRegisterPage() {
     setLoading(true);
     const supabase = createClient();
 
-    // 1. Create auth user
-    const { data: authData, error: authError } = await supabase.auth.signUp({
-      email: form.email,
-      password: form.password,
-      options: { data: { full_name: form.full_name } },
-    });
-
-    if (authError || !authData.user) {
-      setError(authError?.message || "Regisztrációs hiba. Próbáld újra.");
-      setLoading(false);
-      return;
-    }
-
-    // 2. Create partner record (trigger will auto-add user to partner_members)
+    // The org's data can't be inserted into `partners` yet — email
+    // confirmation is required project-wide, so signUp() returns no session
+    // until the user clicks the confirmation link. Instead, the org data
+    // travels in user_metadata, and /megerositve (the confirmation-landing
+    // page) performs the actual `partners` insert once a real session
+    // exists — see docs/implementation/phase-0-1-plan.md Task 1.7.
     const slug = form.partner_name
       .toLowerCase()
       .replace(/\s+/g, "-")
       .replace(/[^a-z0-9-]/g, "")
       .slice(0, 50);
 
-    const { error: partnerError } = await supabase.from("partners").insert({
-      name: form.partner_name,
-      slug: `${slug}-${Date.now()}`,
-      type: form.partner_type,
-      country: form.country,
-      city: form.city || null,
-      phone: form.phone || null,
-      website: form.website || null,
-      description: form.short_description || null,
-      status: "draft",
-      verified: false,
+    const { data: authData, error: authError } = await supabase.auth.signUp({
+      email: form.email,
+      password: form.password,
+      options: {
+        data: {
+          full_name: form.full_name,
+          pending_partner_registration: {
+            name: form.partner_name,
+            slug: `${slug}-${Date.now()}`,
+            type: form.partner_type,
+            country: form.country,
+            city: form.city || null,
+            phone: form.phone || null,
+            website: form.website || null,
+            description: form.short_description || null,
+          },
+        },
+        emailRedirectTo: `${window.location.origin}/megerositve?redirect=${encodeURIComponent("/partner/dashboard")}`,
+      },
     });
 
-    if (partnerError) {
-      setError("Partner profil létrehozása sikertelen: " + partnerError.message);
-      setLoading(false);
+    setLoading(false);
+
+    if (authError || !authData.user) {
+      setError(authError?.message || "Regisztrációs hiba. Próbáld újra.");
       return;
     }
 
-    router.push("/partner/dashboard");
-    router.refresh();
+    setPendingConfirmation(true);
+  }
+
+  if (pendingConfirmation) {
+    return (
+      <div className="min-h-screen bg-[#F7F8F5] flex items-center justify-center px-4 py-10">
+        <div className="bg-white rounded-3xl shadow-sm border border-[#E2E8F0] p-8 w-full max-w-md text-center">
+          <div className="text-5xl mb-4">🐾</div>
+          <h2 className="text-xl font-bold text-[#1C1C1C] mb-2">Nézd meg az emailjeidet!</h2>
+          <p className="text-[#4A5568]">
+            Küldtünk egy megerősítő emailt a(z) <span className="font-semibold">{form.email}</span> címre.
+            A partner fiókod aktiválásához kattints a benne lévő linkre.
+          </p>
+        </div>
+      </div>
+    );
   }
 
   const inputClass = "w-full border border-[#E2E8F0] rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-[#3D7A3D] focus:border-transparent";
