@@ -69,9 +69,19 @@ export async function createFixturePartner(label: string): Promise<FixturePartne
   return { ownerId, ownerEmail: email, ownerClient, partnerId, dogId: dogRow.id as string };
 }
 
-/** Deletes a fixture partner (cascades its dogs/applications) and its owner auth user. */
+/**
+ * Deletes a fixture partner and its owner auth user.
+ *
+ * `adoption_applications.partner_id` has no `on delete cascade` (confirmed in
+ * the 2026-09-06 audit, report 03 — only `dog_id` cascades), so any
+ * applications referencing this partner must be deleted first or the
+ * partner delete fails with a 23503 foreign-key violation. `dogs` itself
+ * does cascade from `partners`, so deleting applications-by-dog first is
+ * sufficient before deleting the partner.
+ */
 export async function cleanupFixturePartner(fixture: FixturePartner): Promise<void> {
   const svc = serviceClient();
+  await svc.from("adoption_applications").delete().eq("partner_id", fixture.partnerId);
   await svc.from("partners").delete().eq("id", fixture.partnerId);
   await svc.auth.admin.deleteUser(fixture.ownerId);
 }

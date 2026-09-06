@@ -240,11 +240,31 @@ Job: the *only* layer that can meaningfully constrain login/signup abuse, precis
 
 **Confirmed live-exploitable in the audit:** 3 identical submissions (same dog, same email) all succeeded with zero pushback.
 
-**Design:** in `src/app/api/applications/route.ts`, before inserting, query for an existing `adoption_applications` row matching `dog_id` + normalized `contact_email` (lower-cased, trimmed) — or `applicant_id` when the requester is authenticated, which is a stronger identity signal than a self-reported email — created within a defined recent window (e.g. 24 hours), whose `status` is not already `rejected`/`withdrawn` (a person should be able to re-apply after a rejection or their own withdrawal, just not spam-resubmit the same pending request). If found, return a friendly, already-localized response (e.g. `{ error: "Már beküldtél egy jelentkezést erre a kutyára, hamarosan jelentkezik a menhely." }`) with an appropriate non-200 status the `ContactForm.tsx` client can display as-is (it already has an error-display path for non-ok responses) — **not** a raw Postgres error surfaced to the user, per the master plan's explicit instruction.
+**Design (revised after a real bug found while implementing — see below):** in `src/app/api/applications/route.ts`, before inserting, check for an existing `adoption_applications` row matching `dog_id` + normalized `contact_email` (lower-cased, trimmed) — or `applicant_id` when the requester is authenticated — created within a defined recent window (24 hours), whose `status` is not already `rejected`/`withdrawn` (a person should be able to re-apply after a rejection or their own withdrawal, just not spam-resubmit the same pending request). If found, return a friendly, already-localized response (`{ error: "Már beküldtél egy jelentkezést erre a kutyára, hamarosan jelentkezik a menhely." }`, HTTP 409) — **not** a raw Postgres error, per the master plan's explicit instruction.
 
-**Defense in depth:** in addition to the app-layer check, a partial unique index will be evaluated at implementation time (e.g. on `(dog_id, lower(contact_email))` — deliberately *not* time-windowed at the DB level, since Postgres partial/unique indexes can't easily express "unique within a rolling time window," only "unique full stop" or "unique per some other partitioning column" — if a hard forever-unique constraint turns out to be too strict for legitimate re-applications after a long gap or after adoption of a returned dog, the app-layer time-windowed check alone will be the shipped mechanism, and this trade-off will be written up plainly in the phase report rather than silently deciding one way).
+**Real bug found and fixed while implementing:** the initial implementation ran the duplicate-check `SELECT` through the same RLS-bound server client (anon key + the caller's own session, if any) used everywhere else in the route. For an authenticated applicant checking their own past applications this works (`"Applicants can read own applications" using (applicant_id = auth.uid())` correctly permits it), but for the much more common **anonymous** submitter, no RLS policy on `adoption_applications` allows reading rows by `contact_email` at all — correctly so, since that's exactly the kind of policy that would let a stranger enumerate "has this email applied here before." The practical effect: RLS silently returned a count of 0 regardless of how many real duplicates existed, so the duplicate check never fired for anonymous submissions — live-reproduced with an automated test (three back-to-back identical anonymous submissions all returned 200, not blocked after the first).
 
-**Affected files:** `src/app/api/applications/route.ts` (the duplicate check + friendly response), `src/components/ContactForm.tsx` (only if the existing error-display path needs any adjustment to show this specific message well — expected to need none, since it already renders `data?.error` generically).
+**Fix:** rather than introducing a broad `service_role` key into application code for the first time ever (this app's anon-key-only architecture was flagged as a deliberate, positive security property in the audit, report 01 §11 finding #6 — worth preserving), the check is exposed through a narrow, purpose-built `SECURITY DEFINER` Postgres function that returns **only a boolean**, never the underlying rows:
+
+```sql
+-- 013_duplicate_application_check.sql
+create or replace function has_recent_pending_application(p_dog_id uuid, p_email text, p_window_hours int default 24)
+returns boolean
+language sql security definer set search_path = public as $$
+  select exists (
+    select 1 from adoption_applications
+    where dog_id = p_dog_id
+      and lower(contact_email) = lower(p_email)
+      and status not in ('rejected', 'withdrawn')
+      and created_at >= now() - (p_window_hours || ' hours')::interval
+  );
+$$;
+grant execute on function has_recent_pending_application(uuid, text, int) to anon, authenticated;
+```
+
+The route calls this via `supabase.rpc("has_recent_pending_application", { p_dog_id, p_email, p_window_hours: 24 })` instead of a direct table `SELECT`. This is the same trust model already used throughout the schema for `is_admin()`/`is_partner_member()` (both also `security definer`) — a function is allowed to see what it needs to answer one narrow question, without granting the caller broad read access to the underlying table. A minor, accepted trade-off noted here rather than silently glossed over: this does let a caller learn "yes/no, this email applied to this dog recently" without proving they own that email — a small information disclosure, consistent with the feature's own purpose (the caller must already supply a real dogId + email + name to get an answer at all, exactly as a real submission would require) and comparable to the common, generally-accepted "an account with this email already exists" pattern on signup forms.
+
+**Affected files:** `supabase/migrations/013_duplicate_application_check.sql` (new), `src/app/api/applications/route.ts` (calls the RPC instead of a direct table select; friendly 409 response), `src/components/ContactForm.tsx` (no change needed — its existing error-display path already renders `data?.error` generically).
 
 **Test plan:** automated — the exact audit scenario (3 rapid identical submissions) now expected to produce exactly 1 real row and 2 friendly rejections, not 3 rows; a submission for the *same dog* by a *different* email still succeeds (proving the fix doesn't over-block); a submission for a *different dog* by the *same* email still succeeds; a re-submission after the matching prior application's status is `rejected` succeeds (proving legitimate re-application isn't blocked).
 
@@ -262,12 +282,12 @@ Job: the *only* layer that can meaningfully constrain login/signup abuse, precis
 
 **Partner registration (`src/app/partner/register/page.tsx`) — the flow that actually requires redesign, per the confirmed decision to accept this cost:**
 1. On submit, call `signUp()` with the organization's form data stashed entirely in `options.data` (Supabase's `user_metadata`, which already carries `full_name` today and can carry the rest — `partner_name`, `partner_type`, `country`, `city`, `phone`, `website`, `short_description` — as additional JSON fields, plus a marker `pending_partner_registration: true`) instead of immediately inserting into `partners`. Show the same "check your email" pending screen as the regular flow.
-2. The shared `src/app/auth/callback/route.ts` (built in task 1.4), once it establishes a real post-confirmation session, checks the metadata marker and, if set, attempts the deferred `partners` insert.
+2. The shared `(client-side landing page pattern, per the task 1.4 correction above — no server callback route)` (built in task 1.4), once it establishes a real post-confirmation session, checks the metadata marker and, if set, attempts the deferred `partners` insert.
 
 **Idempotency — revised per product-owner direction, not solely reliant on clearing the metadata flag:** clearing `pending_partner_registration` after insert is a read-then-act sequence that is **not** atomic against a genuine race (a double-clicked email link, a browser retry, or two tabs both landing on the callback simultaneously could both read the flag as still `true` before either clears it, each attempting an insert). The actual safety net is a **new, tiny migration** adding a real database-level uniqueness guarantee:
 
 ```sql
--- 013_partner_registration_idempotency.sql
+-- 014_partner_registration_idempotency.sql
 alter table partners add column created_by_user_id uuid references profiles(id);
 create unique index partners_created_by_user_id_unique
   on partners (created_by_user_id)
@@ -294,7 +314,7 @@ This is atomic at the database layer regardless of how many concurrent requests 
 
 3. `on_partner_created` (the existing trigger that auto-adds the creator as `owner` in `partner_members`, from migration `002`) is untouched — it fires exactly as before, just later in wall-clock time (after confirmation instead of immediately after signup), which has no functional difference for anything downstream, and only ever fires once per the same uniqueness guarantee (the trigger fires per successful `partners` insert, and now at most one such insert can ever succeed per user via this flow).
 
-**Affected files:** `src/app/regisztracio/page.tsx`, `src/app/bejelentkezes/page.tsx`, `src/app/partner/register/page.tsx`, `src/app/partner/login/page.tsx` (same "resend confirmation" affordance as the regular login), `src/app/auth/callback/route.ts` (shared with 1.4, extended with the partner-metadata branch described above). **Migration needed** (revised from the original "no migration needed" — superseded by the idempotency requirement above): `supabase/migrations/013_partner_registration_idempotency.sql`, applied first to the CI Test project (for the automated test below) and, once verified, to production as part of this task's rollout.
+**Affected files:** `src/app/regisztracio/page.tsx`, `src/app/bejelentkezes/page.tsx`, `src/app/partner/register/page.tsx`, `src/app/partner/login/page.tsx` (same "resend confirmation" affordance as the regular login), `(client-side landing page pattern, per the task 1.4 correction above — no server callback route)` (shared with 1.4, extended with the partner-metadata branch described above). **Migration needed** (revised from the original "no migration needed" — superseded by the idempotency requirement above): `supabase/migrations/014_partner_registration_idempotency.sql`, applied first to the CI Test project (for the automated test below) and, once verified, to production as part of this task's rollout.
 
 **Test plan:** automated — signup with confirmation pending correctly blocks immediate `/profil`/`/partner/dashboard` access (no session yet); confirming (simulated in tests via the CI-project's admin API, which can mark a user confirmed without a real email round-trip) then correctly creates the deferred `partners` row with the right fields and redirects appropriately; **a dedicated concurrency test** that fires the callback's insert logic twice in parallel (simulating the double-click/race scenario) for the same confirmed user and asserts exactly one `partners` row exists afterward, both calls resolve to the same partner id, and neither raises an unhandled error. Manual: one real end-to-end pass with a real inbox for both the regular-user and partner-registration confirmation emails, run against production after this task is fully live, per the Testing Environment Policy's one narrow exception.
 
