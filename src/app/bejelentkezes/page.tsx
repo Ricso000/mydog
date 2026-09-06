@@ -45,7 +45,12 @@ function LoginForm() {
             />
           </div>
           <div>
-            <label className="block text-sm font-medium text-[#1C1C1C] mb-1.5">Jelszó</label>
+            <div className="flex items-center justify-between mb-1.5">
+              <label className="block text-sm font-medium text-[#1C1C1C]">Jelszó</label>
+              <Link href="/jelszo-visszaallitas" className="text-xs text-[#1A3D2B] hover:underline">
+                Elfelejtetted a jelszavad?
+              </Link>
+            </div>
             <input
               type="password" value={password} onChange={e => setPassword(e.target.value)} required
               className="w-full border border-[#E2E8F0] rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-[#3D7A3D] focus:border-transparent"
