@@ -9,11 +9,11 @@ interface PageProps {
 
 const DOG_STATUS_LABEL: Record<string, string> = {
   available: "Elérhető", adopted: "Örökbefogadott",
-  reserved: "Foglalt", not_available: "Nem elérhető",
+  reserved: "Foglalt", inactive: "Nem elérhető",
 };
 const DOG_STATUS_COLOR: Record<string, string> = {
   available: "bg-green-100 text-green-700", adopted: "bg-blue-100 text-blue-700",
-  reserved: "bg-purple-100 text-purple-700", not_available: "bg-gray-100 text-gray-700",
+  reserved: "bg-purple-100 text-purple-700", inactive: "bg-gray-100 text-gray-700",
 };
 
 export default async function AdminDogsPage({ searchParams }: PageProps) {
@@ -41,7 +41,7 @@ export default async function AdminDogsPage({ searchParams }: PageProps) {
 
       {/* Status filters */}
       <div className="bg-white rounded-2xl border border-[#E2E8F0] p-4 mb-6 flex flex-wrap gap-2">
-        {["", "available", "adopted", "reserved", "not_available"].map(s => (
+        {["", "available", "adopted", "reserved", "inactive"].map(s => (
           <Link key={s || "all"} href={s ? `/admin/dogs?status=${s}` : "/admin/dogs"}
             className={`px-3 py-1.5 rounded-full text-xs font-semibold transition-colors ${sp.status === s || (!sp.status && !s) ? "bg-[#1A3D2B] text-white" : "bg-[#F7F8F5] text-[#4A5568] hover:bg-[#E8F5E9]"}`}>
             {s ? DOG_STATUS_LABEL[s] : "Összes"}

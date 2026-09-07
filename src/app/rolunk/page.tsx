@@ -56,7 +56,7 @@ export default function RolunkPage() {
             </div>
             <div className="bg-[#E8F5E9] rounded-3xl p-8 text-center">
               <div className="text-[6rem] mb-4">🐕</div>
-              <p className="text-2xl font-bold text-[#1A3D2B]">„Mert minden élet számít."</p>
+              <p className="text-2xl font-bold text-[#1A3D2B]">„Mert minden élet számít.”</p>
               <p className="text-[#4A5568] mt-3">— A MyDog csapata</p>
             </div>
           </div>

@@ -6,6 +6,12 @@ import {
 } from "@/lib/email";
 
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+const MAX_MESSAGE_LENGTH = 2000;
+// Applications for the same dog by the same identity within this window are
+// treated as duplicates unless the earlier one was rejected/withdrawn (a
+// person should be able to re-apply after either of those, just not
+// spam-resubmit the same pending request) — see docs/implementation/phase-0-1-plan.md Task 1.6.
+const DUPLICATE_WINDOW_HOURS = 24;
 
 export async function POST(request: Request) {
   let body: {
@@ -14,11 +20,20 @@ export async function POST(request: Request) {
     email?: string;
     phone?: string;
     message?: string;
+    // Honeypot: a real visitor never fills this hidden field in; a scripted
+    // submission that fills every field blindly will. Anything but empty
+    // here is treated as a bot, and the request is accepted (200) without
+    // creating a real row, so the caller gets no signal it was detected.
+    website?: string;
   };
   try {
     body = await request.json();
   } catch {
     return NextResponse.json({ error: "Érvénytelen kérés." }, { status: 400 });
+  }
+
+  if (body.website) {
+    return NextResponse.json({ ok: true });
   }
 
   const dogId = body.dogId?.trim();
@@ -32,6 +47,12 @@ export async function POST(request: Request) {
   }
   if (!EMAIL_RE.test(email)) {
     return NextResponse.json({ error: "Érvénytelen email cím." }, { status: 400 });
+  }
+  if (message && message.length > MAX_MESSAGE_LENGTH) {
+    return NextResponse.json(
+      { error: `Az üzenet legfeljebb ${MAX_MESSAGE_LENGTH} karakter lehet.` },
+      { status: 400 }
+    );
   }
 
   const supabase = await createClient();
@@ -48,6 +69,27 @@ export async function POST(request: Request) {
 
   if (dogError || !dog) {
     return NextResponse.json({ error: "A kutya nem található." }, { status: 404 });
+  }
+
+  // RLS correctly prevents a plain SELECT here from seeing other applicants'
+  // rows (see docs/implementation/phase-0-1-plan.md Task 1.6 for the bug this
+  // caused when first implemented as a direct table query) — this narrow
+  // security-definer function answers only the boolean the route needs.
+  const { data: isDuplicate, error: duplicateError } = await supabase.rpc("has_recent_pending_application", {
+    p_dog_id: dogId,
+    p_email: email,
+    p_window_hours: DUPLICATE_WINDOW_HOURS,
+  });
+
+  if (duplicateError) {
+    console.error("[applications] duplicate-check error:", duplicateError);
+    return NextResponse.json({ error: "Hiba történt a mentés során." }, { status: 500 });
+  }
+  if (isDuplicate) {
+    return NextResponse.json(
+      { error: "Már beküldtél egy jelentkezést erre a kutyára, hamarosan jelentkezik a menhely." },
+      { status: 409 }
+    );
   }
 
   const { error: insertError } = await supabase.from("adoption_applications").insert({

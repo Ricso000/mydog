@@ -11,21 +11,35 @@ function LoginForm() {
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
+  const [unconfirmed, setUnconfirmed] = useState(false);
+  const [resendStatus, setResendStatus] = useState("");
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     setError("");
+    setUnconfirmed(false);
     setLoading(true);
     const supabase = createClient();
     const { error: authError } = await supabase.auth.signInWithPassword({ email, password });
     if (authError) {
-      setError("Hibás email cím vagy jelszó.");
+      if (authError.code === "email_not_confirmed") {
+        setUnconfirmed(true);
+      } else {
+        setError("Hibás email cím vagy jelszó.");
+      }
       setLoading(false);
       return;
     }
     const redirectTo = searchParams.get("redirect") || "/";
     router.push(redirectTo);
     router.refresh();
+  }
+
+  async function handleResend() {
+    setResendStatus("Küldés...");
+    const supabase = createClient();
+    const { error: resendError } = await supabase.auth.resend({ type: "signup", email });
+    setResendStatus(resendError ? "Nem sikerült újraküldeni. Próbáld újra később." : "Elküldve! Nézd meg az emailjeidet.");
   }
 
   return (
@@ -45,7 +59,12 @@ function LoginForm() {
             />
           </div>
           <div>
-            <label className="block text-sm font-medium text-[#1C1C1C] mb-1.5">Jelszó</label>
+            <div className="flex items-center justify-between mb-1.5">
+              <label className="block text-sm font-medium text-[#1C1C1C]">Jelszó</label>
+              <Link href="/jelszo-visszaallitas" className="text-xs text-[#1A3D2B] hover:underline">
+                Elfelejtetted a jelszavad?
+              </Link>
+            </div>
             <input
               type="password" value={password} onChange={e => setPassword(e.target.value)} required
               className="w-full border border-[#E2E8F0] rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-[#3D7A3D] focus:border-transparent"
@@ -53,6 +72,15 @@ function LoginForm() {
             />
           </div>
           {error && <p className="text-red-600 text-sm bg-red-50 px-4 py-3 rounded-xl">{error}</p>}
+          {unconfirmed && (
+            <div className="text-sm bg-amber-50 text-amber-800 px-4 py-3 rounded-xl">
+              <p>Ez a fiók még nincs megerősítve. Nézd meg az emailjeidet, vagy</p>
+              <button type="button" onClick={handleResend} className="font-semibold underline mt-1">
+                küldd újra a megerősítő emailt
+              </button>
+              {resendStatus && <p className="mt-1">{resendStatus}</p>}
+            </div>
+          )}
           <button
             type="submit" disabled={loading}
             className="w-full bg-[#1B4D2F] hover:bg-[#1A3D2B] text-white font-semibold py-3 rounded-xl transition-colors disabled:opacity-60"

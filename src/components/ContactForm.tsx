@@ -8,7 +8,7 @@ interface ContactFormProps {
 }
 
 export function ContactForm({ dogId, dogName }: ContactFormProps) {
-  const [form, setForm] = useState({ name: "", email: "", phone: "", message: "" });
+  const [form, setForm] = useState({ name: "", email: "", phone: "", message: "", website: "" });
   const [loading, setLoading] = useState(false);
   const [submitted, setSubmitted] = useState(false);
   const [error, setError] = useState("");
@@ -31,6 +31,7 @@ export function ContactForm({ dogId, dogName }: ContactFormProps) {
           email: form.email,
           phone: form.phone,
           message: form.message,
+          website: form.website,
         }),
       });
       if (res.ok) {
@@ -63,6 +64,20 @@ export function ContactForm({ dogId, dogName }: ContactFormProps) {
 
   return (
     <form onSubmit={handleSubmit} className="space-y-4">
+      {/* Honeypot: hidden from real visitors, invisible to screen readers, but
+          present in the DOM for scripts that fill in every field blindly. */}
+      <div className="absolute -left-[9999px] w-px h-px overflow-hidden" aria-hidden="true">
+        <label htmlFor="website">Website</label>
+        <input
+          type="text"
+          id="website"
+          name="website"
+          tabIndex={-1}
+          autoComplete="off"
+          value={form.website}
+          onChange={(e) => setForm((f) => ({ ...f, website: e.target.value }))}
+        />
+      </div>
       <div>
         <label className="block text-sm font-medium text-[#1C1C1C] mb-1.5">Teljes név *</label>
         <input

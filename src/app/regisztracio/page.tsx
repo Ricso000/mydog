@@ -12,6 +12,7 @@ function RegisterForm() {
   const [fullName, setFullName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [pendingConfirmation, setPendingConfirmation] = useState(false);
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -28,10 +29,14 @@ function RegisterForm() {
 
     setLoading(true);
     const supabase = createClient();
-    const { error: authError } = await supabase.auth.signUp({
+    const redirectTo = searchParams.get("redirect") || "/profil";
+    const { data, error: authError } = await supabase.auth.signUp({
       email,
       password,
-      options: { data: { full_name: fullName } },
+      options: {
+        data: { full_name: fullName },
+        emailRedirectTo: `${window.location.origin}/megerositve?redirect=${encodeURIComponent(redirectTo)}`,
+      },
     });
 
     if (authError) {
@@ -44,9 +49,33 @@ function RegisterForm() {
       return;
     }
 
-    const redirectTo = searchParams.get("redirect") || "/profil";
+    setLoading(false);
+
+    // Email confirmation is required project-wide: signUp() returns no
+    // session until the user clicks the confirmation link, so there is
+    // nothing to redirect into yet.
+    if (!data.session) {
+      setPendingConfirmation(true);
+      return;
+    }
+
     router.push(redirectTo);
     router.refresh();
+  }
+
+  if (pendingConfirmation) {
+    return (
+      <div className="min-h-screen bg-[#F7F8F5] flex items-center justify-center px-4 py-10">
+        <div className="bg-white rounded-3xl shadow-sm border border-[#E2E8F0] p-8 w-full max-w-md text-center">
+          <div className="text-5xl mb-4">🐾</div>
+          <h2 className="text-xl font-bold text-[#1C1C1C] mb-2">Nézd meg az emailjeidet!</h2>
+          <p className="text-[#4A5568]">
+            Küldtünk egy megerősítő emailt a(z) <span className="font-semibold">{email}</span> címre.
+            A fiókod aktiválásához kattints a benne lévő linkre.
+          </p>
+        </div>
+      </div>
+    );
   }
 
   const inputClass =

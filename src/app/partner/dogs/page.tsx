@@ -6,7 +6,7 @@ import Image from "next/image";
 const STATUS_LABEL: Record<string, string> = {
   available: "Elérhető", adopted: "Örökbefogadott",
   pending_review: "Jóváhagyás alatt", reserved: "Foglalt",
-  not_available: "Nem elérhető",
+  inactive: "Nem elérhető",
 };
 
 const STATUS_COLOR: Record<string, string> = {
@@ -14,7 +14,7 @@ const STATUS_COLOR: Record<string, string> = {
   adopted: "bg-blue-100 text-blue-700",
   pending_review: "bg-amber-100 text-amber-700",
   reserved: "bg-purple-100 text-purple-700",
-  not_available: "bg-gray-100 text-gray-700",
+  inactive: "bg-gray-100 text-gray-700",
 };
 
 export default async function PartnerDogsPage() {

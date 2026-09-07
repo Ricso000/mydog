@@ -16,7 +16,7 @@ const STATUSES = [
   { value: "available", label: "Elérhető" },
   { value: "reserved", label: "Foglalt" },
   { value: "adopted", label: "Örökbefogadott" },
-  { value: "not_available", label: "Nem elérhető" },
+  { value: "inactive", label: "Nem elérhető" },
 ];
 const COUNTRIES = [
   { value: "HU", label: "Magyarország" }, { value: "DE", label: "Németország" },

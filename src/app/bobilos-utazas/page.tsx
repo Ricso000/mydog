@@ -191,7 +191,7 @@ export default function BobilosUtazasPage() {
       <section className="py-16 bg-[#F7F8F5]">
         <div className="max-w-3xl mx-auto px-4 text-center">
           <blockquote className="text-2xl font-semibold text-[#1C1C1C] italic mb-6">
-            „Az élet legjobb kalandjai kutyával a legjobb baráttal."
+            „Az élet legjobb kalandjai kutyával a legjobb baráttal.”
           </blockquote>
           <p className="text-[#4A5568] mb-8">Csatlakozz és kezdj el tervezni a következő kalandot!</p>
           <Link

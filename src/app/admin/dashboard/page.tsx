@@ -4,6 +4,13 @@ import Link from "next/link";
 export default async function AdminDashboard() {
   const { supabase } = await requireAdmin();
 
+  // react-hooks/purity flags Date.now() as an impure render call, but this is an
+  // async Server Component: it runs once per request server-side and is never
+  // re-rendered client-side, so the "unstable result on re-render" concern the
+  // rule guards against does not apply here.
+  // eslint-disable-next-line react-hooks/purity
+  const thirtyDaysAgoIso = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString();
+
   // Fetch all stats in parallel
   const [
     { count: totalPartners },
@@ -20,8 +27,7 @@ export default async function AdminDashboard() {
     supabase.from("dogs").select("*", { count: "exact", head: true }),
     supabase.from("dogs").select("*", { count: "exact", head: true }).eq("status", "available"),
     supabase.from("adoption_applications").select("*", { count: "exact", head: true }).eq("status", "submitted"),
-    supabase.from("profiles").select("*", { count: "exact", head: true })
-      .gte("created_at", new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString()),
+    supabase.from("profiles").select("*", { count: "exact", head: true }).gte("created_at", thirtyDaysAgoIso),
   ]);
 
   const stats = [
