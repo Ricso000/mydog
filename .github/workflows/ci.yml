@@ -2,7 +2,7 @@ name: CI
 
 on:
   push:
-    branches: [main, phase-0-1-launch-safety]
+    branches: [main]
   pull_request:
     branches: [main]
 
