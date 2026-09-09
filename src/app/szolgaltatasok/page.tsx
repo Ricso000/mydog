@@ -1,14 +1,14 @@
 import Link from "next/link";
 
 const services = [
-  { icon: "🏠", title: "Menhelyek & Fajtamentők", desc: "Több mint 2 500 partner szervezet Európa-szerte. Szűrd fajta, ország és méret szerint.", color: "bg-green-50" },
-  { icon: "💉", title: "Állatorvosok", desc: "Megbízható állatorvos partnerek az egészségügyi vizsgálathoz és az örökbefogadás előkészítéséhez.", color: "bg-blue-50" },
-  { icon: "🐕", title: "Kutyás szolgáltatók", desc: "Kutya iskola, panzió, sétáltató, groomer – minden amihez a kutyád fejlődéséhez szükséged lesz.", color: "bg-amber-50" },
-  { icon: "🚐", title: "Szállítás & Logisztika", desc: "Biztonságos szállítás határon átnyúlóan is. Tapasztalt partnerekkel, EU-kompatibilis dokumentumokkal.", color: "bg-orange-50" },
-  { icon: "❤️", title: "Önkéntes hálózat", desc: "Csatlakozz 8 000+ önkénteshez, akik segítik a kutyák útját a menhely és az új otthon között.", color: "bg-red-50" },
-  { icon: "🏡", title: "Ideiglenes befogadás", desc: "Adj ideiglenes otthont egy kutyának, amíg megtalálja végleges gazdáját.", color: "bg-purple-50" },
-  { icon: "📚", title: "Tudástár & Tanácsok", desc: "Cikkek, videók és szakértői tanácsok az örökbefogadásról, a kutya neveléséről és egészségéről.", color: "bg-teal-50" },
-  { icon: "🎁", title: "Támogathatsz", desc: "Adományoddal közvetlenül segíted a menhelyeket és az önkénteseket.", color: "bg-pink-50" },
+  { icon: "🏠", title: "Menhelyek & Fajtamentők", desc: "Több mint 2 500 partner szervezet Európa-szerte. Szűrd fajta, ország és méret szerint.", color: "bg-green-50", href: "/partners?type=shelter,breed_rescue" },
+  { icon: "💉", title: "Állatorvosok", desc: "Megbízható állatorvos partnerek az egészségügyi vizsgálathoz és az örökbefogadás előkészítéséhez.", color: "bg-blue-50", href: "/partners?type=veterinarian" },
+  { icon: "🐕", title: "Kutyás szolgáltatók", desc: "Kutya iskola, panzió, sétáltató, groomer – minden amihez a kutyád fejlődéséhez szükséged lesz.", color: "bg-amber-50", href: "/partners?type=dog_school,boarding,walker,grooming" },
+  { icon: "🚐", title: "Szállítás & Logisztika", desc: "Biztonságos szállítás határon átnyúlóan is. Tapasztalt partnerekkel, EU-kompatibilis dokumentumokkal.", color: "bg-orange-50", href: "/partners?type=transport" },
+  { icon: "❤️", title: "Önkéntes hálózat", desc: "Csatlakozz 8 000+ önkénteshez, akik segítik a kutyák útját a menhely és az új otthon között.", color: "bg-red-50", href: "/onkentesek" },
+  { icon: "🏡", title: "Ideiglenes befogadás", desc: "Adj ideiglenes otthont egy kutyának, amíg megtalálja végleges gazdáját.", color: "bg-purple-50", href: null },
+  { icon: "📚", title: "Tudástár & Tanácsok", desc: "Cikkek, videók és szakértői tanácsok az örökbefogadásról, a kutya neveléséről és egészségéről.", color: "bg-teal-50", href: null },
+  { icon: "🎁", title: "Támogathatsz", desc: "Adományoddal közvetlenül segíted a menhelyeket és az önkénteseket.", color: "bg-pink-50", href: null },
 ];
 
 const howItWorks = [
@@ -102,13 +102,29 @@ export default function SzolgaltatasokPage() {
             <h2 className="text-3xl font-bold text-[#1C1C1C]">Szolgáltatásaink</h2>
           </div>
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-            {services.map((s) => (
-              <div key={s.title} className={`${s.color} rounded-2xl p-6 hover:shadow-md transition-shadow border border-white`}>
-                <div className="text-4xl mb-4">{s.icon}</div>
-                <h3 className="text-base font-bold text-[#1C1C1C] mb-2">{s.title}</h3>
-                <p className="text-sm text-[#4A5568] leading-relaxed">{s.desc}</p>
-              </div>
-            ))}
+            {services.map((s) => {
+              const cardClass = `${s.color} rounded-2xl p-6 border border-white block h-full`;
+              const content = (
+                <>
+                  <div className="text-4xl mb-4">{s.icon}</div>
+                  <h3 className="text-base font-bold text-[#1C1C1C] mb-2">{s.title}</h3>
+                  <p className="text-sm text-[#4A5568] leading-relaxed">{s.desc}</p>
+                </>
+              );
+              return s.href ? (
+                <Link
+                  key={s.title}
+                  href={s.href}
+                  className={`${cardClass} hover:shadow-md hover:-translate-y-0.5 transition-all`}
+                >
+                  {content}
+                </Link>
+              ) : (
+                <div key={s.title} className={cardClass}>
+                  {content}
+                </div>
+              );
+            })}
           </div>
         </div>
       </section>
